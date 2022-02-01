@@ -1,8 +1,8 @@
 package com.easywritten.allowancechart.domain
 
-final case class MoneyBag(moneys: Map[Currency, BigDecimal]) {
+final case class MoneyBag(moneys: Map[Currency, MoneyAmount]) {
   def +(money: Money): MoneyBag = {
-    val newAmount: BigDecimal = moneys.getOrElse(money.currency, BigDecimal(0)) + money.amount
+    val newAmount: MoneyAmount = moneys.getOrElse(money.currency, ZeroAmount) + money.amount
     copy(moneys.updated(money.currency, newAmount))
   }
 }

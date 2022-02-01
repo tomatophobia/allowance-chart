@@ -4,7 +4,7 @@ import cats.kernel.Eq
 import cats.implicits._
 import enumeratum._
 
-final case class Money(currency: Currency, amount: BigDecimal) {
+final case class Money(currency: Currency, amount: MoneyAmount) {
 
   @SuppressWarnings(Array("org.wartremover.warts.Throw"))
   def unsafe_+(other: Money): Money = {
@@ -19,8 +19,8 @@ final case class Money(currency: Currency, amount: BigDecimal) {
 }
 
 object Money {
-  def usd(amount: BigDecimal): Money = Money(Currency.USD, amount)
-  def krw(amount: BigDecimal): Money = Money(Currency.KRW, amount)
+  def usd(amount: MoneyAmount): Money = Money(Currency.USD, amount)
+  def krw(amount: MoneyAmount): Money = Money(Currency.KRW, amount)
 
   implicit val eqMoney: Eq[Money] = Eq.fromUniversalEquals
 }
