@@ -12,7 +12,10 @@ lazy val root = (project in file("."))
       "dev.zio" %% "zio-test-sbt" % "1.0.13" % Test,
       "dev.zio" %% "zio-test-magnolia" % "1.0.13" % Test,
       "org.typelevel" %% "cats-core" % "2.7.0",
-      "com.beachape" %% "enumeratum" % "1.7.0"
+      "com.beachape" %% "enumeratum" % "1.7.0",
+      "io.github.thehonesttech" %% "zio-entity-core" % "0.0.26",
+      "io.github.thehonesttech" %% "zio-entity-akkaruntime" % "0.0.26",
+      "io.github.thehonesttech" %% "zio-entity-postgres" % "0.0.26"
     ),
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
     wartremoverErrors ++= Warts.allBut(
