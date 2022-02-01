@@ -1,3 +1,3 @@
 package com.easywritten.allowancechart.domain
 
-final case class Equity ()
+final case class Equity()
