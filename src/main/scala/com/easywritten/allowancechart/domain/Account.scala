@@ -12,7 +12,7 @@ final case class Account() {
   def balance: Money = activityWindow.foldRight(Money.usd(0)) {
     (act, remainder) =>
       act match {
-        case Deposit(money) => money + remainder
+        case Deposit(money) => money unsafe_+ remainder
       }
   }
 
