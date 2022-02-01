@@ -18,7 +18,7 @@ object MoneyBagSpec extends DefaultRunnableSpec {
         val afterMoneyBag = beforeMoneyBag + m1 + m2 + m3 + m4
 
         assertTrue(afterMoneyBag.moneys(Currency.USD: Currency) == BigDecimal(371.33)) &&
-          assertTrue(afterMoneyBag.moneys(Currency.KRW: Currency) == BigDecimal(751731))
+        assertTrue(afterMoneyBag.moneys(Currency.KRW: Currency) == BigDecimal(751731))
       }
     }
 }
