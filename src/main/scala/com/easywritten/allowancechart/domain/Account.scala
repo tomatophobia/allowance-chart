@@ -9,10 +9,10 @@ final case class Account() {
 
   // TODO 여기서도 결국 이벤트 소싱으로 가게 된다면 Account에서 잔고를 구하는게 아니고 AccountState가 따로 생겨야 할 것 같음
   // TODO diamond에서는 read를 통해 저널을 읽고 AccountState 생성한 뒤 그걸 사용
-  def balance: Money = activityWindow.foldRight(Money.usd(0)) {
+  def balance: MoneyBag = activityWindow.foldRight(MoneyBag.empty) {
     (act, remainder) =>
       act match {
-        case Deposit(money) => money unsafe_+ remainder
+        case Deposit(money) => remainder + money
       }
   }
 

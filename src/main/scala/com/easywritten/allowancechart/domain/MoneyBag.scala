@@ -6,3 +6,10 @@ final case class MoneyBag(moneys: Map[Currency, MoneyAmount]) {
     copy(moneys.updated(money.currency, newAmount))
   }
 }
+
+object MoneyBag {
+  val empty: MoneyBag = MoneyBag(Map())
+
+  def fromMoneys(moneys: Money*): MoneyBag =
+    MoneyBag(moneys.map(m => m.currency -> m.amount).toMap)
+}

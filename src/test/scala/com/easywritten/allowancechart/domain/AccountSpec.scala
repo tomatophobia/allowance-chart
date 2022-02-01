@@ -9,8 +9,10 @@ object AccountSpec extends DefaultRunnableSpec {
     suite("AccountSpec") {
       test("Deposit usd into Account") {
         val acc1 = Account()
-        acc1.deposit(Money.usd(1235))
-        assertTrue(acc1.balance == Money.usd(1235))
+        val usd = Money.usd(1235)
+        acc1.deposit(usd)
+        val mb = MoneyBag.fromMoneys(usd)
+        assertTrue(acc1.balance == mb)
       }
     }
 }
