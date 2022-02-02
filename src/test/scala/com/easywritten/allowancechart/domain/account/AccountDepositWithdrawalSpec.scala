@@ -1,34 +1,17 @@
 package com.easywritten.allowancechart.domain.account
 
 import com.easywritten.allowancechart.domain.{Currency, Money, MoneyBag}
-import zio._
 import zio.clock.Clock
 import zio.duration.durationInt
 import zio.entity.core._
-import zio.entity.readside.ReadSideParams
 import zio.entity.test.TestEntityRuntime._
 import zio.entity.test.TestMemoryStores
 import zio.test._
 import zio.test.Assertion._
 
-object AccountSpec extends DefaultRunnableSpec {
-
-  import EventSourcedAccount.accountProtocol
-
-  private val layer = Clock.any ++ TestMemoryStores.make[String, AccountEvent, AccountState](50.millis) >>>
-    testEntity(
-      EventSourcedAccount.tagging,
-      EventSourcedBehaviour[Account, AccountState, AccountEvent, AccountCommandReject](
-        new EventSourcedAccount(_),
-        EventSourcedAccount.eventHandlerLogic,
-        e => {
-          AccountCommandReject.FromThrowable(Option(e))
-        }
-      )
-    )
-
+object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
   override def spec: ZSpec[Environment, Failure] =
-    suite("AccountSpec")(
+    suite("AccountDepositWithdrawalSpec")(
       testM("Deposit money into Account several times") {
         val moneys: List[Money] = List(Money.usd(123.12), Money.usd(456.45), Money.krw(12519), Money.krw(56947))
 
@@ -88,8 +71,20 @@ object AccountSpec extends DefaultRunnableSpec {
           _ <- accountEntity("key").deposit(Money.usd(100))
           failure <- accountEntity("key").withdraw(Money.usd(123.12)).run
         } yield {
-          assert(failure)(fails(equalTo(AccountCommandReject.InsufficientBalance)))
+          assert(failure)(fails(equalTo(AccountCommandReject.InsufficientBalance("Withdrawal failed"))))
         }).provideSomeLayer[Environment](layer)
-      },
+      }
+    )
+
+  import EventSourcedAccount.accountProtocol
+
+  private val layer = Clock.any ++ TestMemoryStores.make[String, AccountEvent, AccountState](50.millis) >>>
+    testEntity(
+      EventSourcedAccount.tagging,
+      EventSourcedBehaviour[Account, AccountState, AccountEvent, AccountCommandReject](
+        new EventSourcedAccount(_),
+        EventSourcedAccount.eventHandlerLogic,
+        AccountCommandReject.FromThrowable
+      )
     )
 }

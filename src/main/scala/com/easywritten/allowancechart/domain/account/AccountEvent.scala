@@ -1,6 +1,8 @@
 package com.easywritten.allowancechart.domain.account
 
-import com.easywritten.allowancechart.domain.Money
+import com.easywritten.allowancechart.domain.{Money, TickerSymbol}
+
+import java.time.Instant
 
 sealed trait AccountEvent
 
@@ -9,4 +11,7 @@ object AccountEvent {
   final case class Deposit(money: Money) extends AccountEvent
 
   final case class Withdrawal(money: Money) extends AccountEvent
+
+  final case class Buy(str: TickerSymbol, averagePrice: Money, quantity: Int, contractedAt: Instant)
+      extends AccountEvent
 }

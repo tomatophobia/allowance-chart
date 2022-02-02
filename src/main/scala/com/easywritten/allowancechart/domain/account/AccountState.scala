@@ -1,12 +1,12 @@
 package com.easywritten.allowancechart.domain.account
 
-import com.easywritten.allowancechart.domain.MoneyBag
-import zio.entity.core.Fold
+import com.easywritten.allowancechart.domain.{Holding, MoneyBag, TickerSymbol}
 
 final case class AccountState(
-    balance: MoneyBag
+    balance: MoneyBag,
+    holdings: Map[TickerSymbol, Holding]
 )
 
 object AccountState {
-  val init: AccountState = AccountState(balance = MoneyBag.empty)
+  val init: AccountState = AccountState(balance = MoneyBag.empty, holdings = Map())
 }
