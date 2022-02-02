@@ -16,6 +16,10 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
   override def deposit(money: Money): IO[AccountCommandReject, Unit] = read flatMap { state =>
     append(AccountEvent.Deposit(money)).unit
   }
+
+  override def withdraw(money: Money): IO[AccountCommandReject, Unit] = read flatMap { state =>
+    append(AccountEvent.Withdrawal(money)).unit
+  }
 }
 
 object EventSourcedAccount {
@@ -25,6 +29,7 @@ object EventSourcedAccount {
     initial = AccountState.init,
     reduce = {
       case (state, AccountEvent.Deposit(money)) => UIO.succeed(state.copy(balance = state.balance + money))
+      case (state, AccountEvent.Withdrawal(money)) => UIO.succeed(state.copy(balance = state.balance - money))
       case _                                    => impossible
     }
   )

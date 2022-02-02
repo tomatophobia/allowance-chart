@@ -1,6 +1,6 @@
 package com.easywritten.allowancechart.domain.account
 
-import com.easywritten.allowancechart.domain.{Money, MoneyBag}
+import com.easywritten.allowancechart.domain.{Currency, Money, MoneyBag}
 import zio._
 import zio.clock.Clock
 import zio.duration.durationInt
@@ -50,6 +50,29 @@ object AccountSpec extends DefaultRunnableSpec {
           balance <- accountEntity("key").balance
         } yield {
           assert(events)(equalTo(moneys.map(AccountEvent.Deposit))) &&
+          assert(balance)(equalTo(expectedBalance))
+        }).provideSomeLayer[Environment](layer)
+      },
+      testM("Withdraw money from account several times") {
+        val expectedBalance = MoneyBag(Map(Currency.USD -> BigDecimal(420.43), Currency.KRW -> BigDecimal(298096)))
+
+        (for {
+          (accountEntity, probe) <- testEntityWithProbe[
+            String,
+            Account,
+            AccountState,
+            AccountEvent,
+            AccountCommandReject
+          ]
+          _ <- accountEntity("key").deposit(Money.usd(1000))
+          _ <- accountEntity("key").deposit(Money.krw(1000000))
+
+          _ <- accountEntity("key").withdraw(Money.usd(123.12))
+          _ <- accountEntity("key").withdraw(Money.usd(456.45))
+          _ <- accountEntity("key").withdraw(Money.krw(232579))
+          _ <- accountEntity("key").withdraw(Money.krw(469325))
+          balance <- accountEntity("key").balance
+        } yield {
           assert(balance)(equalTo(expectedBalance))
         }).provideSomeLayer[Environment](layer)
       }

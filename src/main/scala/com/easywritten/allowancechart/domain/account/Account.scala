@@ -10,4 +10,7 @@ trait Account {
 
   @Id(2)
   def deposit(money: Money): IO[AccountCommandReject, Unit]
+
+  @Id(3)
+  def withdraw(money: Money): IO[AccountCommandReject, Unit]
 }
