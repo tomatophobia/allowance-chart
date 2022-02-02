@@ -51,7 +51,6 @@ object AccountSpec extends DefaultRunnableSpec {
         } yield {
           assert(events)(equalTo(moneys.map(AccountEvent.Deposit))) &&
           assert(balance)(equalTo(expectedBalance))
-          // assertTrue로 바꾸면 비교 못하고 런타임 에러 발생 둘이 뭔가 차이가 있는 듯
         }).provideSomeLayer[Environment](layer)
       }
     )
