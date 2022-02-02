@@ -12,9 +12,8 @@ import zio.entity.readside.ReadSideParams
 import zio.entity.test.TestEntityRuntime._
 import zio.entity.test.TestMemoryStores
 import zio.test.Assertion.equalTo
-import zio.test.environment.TestEnvironment
-import zio.test.{assert, DefaultRunnableSpec, ZSpec}
-import zio.{IO, Ref, UIO}
+import zio.test._
+import zio._
 
 object ZioEntitySpec extends DefaultRunnableSpec {
 
@@ -29,7 +28,8 @@ object ZioEntitySpec extends DefaultRunnableSpec {
       )
     )
 
-  override def spec: ZSpec[TestEnvironment, Any] = suite("An entity built with LocalRuntimeWithProto")(
+  @SuppressWarnings(Array("org.wartremover.warts.JavaSerializable", "org.wartremover.warts.Serializable"))
+  override def spec: ZSpec[Environment, Failure] = suite("An entity built with LocalRuntimeWithProto")(
     testM("receives commands, produces events and updates state") {
       (for {
         (counter, probe) <- testEntityWithProbe[String, Counter, Int, CountEvent, String]
@@ -46,7 +46,7 @@ object ZioEntitySpec extends DefaultRunnableSpec {
         assert(secondEntityRes)(equalTo(1)) &&
         assert(secondEntityFinalRes)(equalTo(6)) &&
         assert(fromState)(equalTo(1))
-      }).provideSomeLayer[TestEnvironment](layer)
+      }).provideSomeLayer[Environment](layer)
     },
     testM("Read side processing processes work") {
       (for {
@@ -69,14 +69,14 @@ object ZioEntitySpec extends DefaultRunnableSpec {
         _ <- counter("key").decrease(1)
         _ <- probe.triggerReadSideProcessing(1)
         valueOfState <- state.get
-      } yield assert(valueOfState)(equalTo(2))).provideSomeLayer[TestEnvironment](layer)
+      } yield assert(valueOfState)(equalTo(2))).provideSomeLayer[Environment](layer)
     }
   )
 }
 
-sealed trait CountEvent
-case class CountIncremented(number: Int) extends CountEvent
-case class CountDecremented(number: Int) extends CountEvent
+sealed trait CountEvent extends Product with Serializable
+final case class CountIncremented(number: Int) extends CountEvent
+final case class CountDecremented(number: Int) extends CountEvent
 
 trait Counter {
   @Id(4)
@@ -120,6 +120,7 @@ object CounterEntity {
     }
   )
 
+  @SuppressWarnings(Array("org.wartremover.warts.All"))
   implicit val counterProtocol: EntityProtocol[Counter, String] =
     RpcMacro.derive[Counter, String]
 

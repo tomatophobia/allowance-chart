@@ -31,6 +31,7 @@ object EventSourcedAccount {
 
   import AccountCommandReject.accountCommandRejectPickler
 
+  @SuppressWarnings(Array("org.wartremover.warts.All"))
   implicit val accountProtocol: EntityProtocol[Account, AccountCommandReject] =
     RpcMacro.derive[Account, AccountCommandReject]
 }
