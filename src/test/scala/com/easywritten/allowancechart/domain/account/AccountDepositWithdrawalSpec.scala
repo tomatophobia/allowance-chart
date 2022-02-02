@@ -1,11 +1,9 @@
 package com.easywritten.allowancechart.domain.account
 
 import com.easywritten.allowancechart.domain.{Currency, Money, MoneyBag}
-import zio._
 import zio.clock.Clock
 import zio.duration.durationInt
 import zio.entity.core._
-import zio.entity.readside.ReadSideParams
 import zio.entity.test.TestEntityRuntime._
 import zio.entity.test.TestMemoryStores
 import zio.test._

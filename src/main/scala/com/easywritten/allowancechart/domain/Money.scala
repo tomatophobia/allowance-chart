@@ -4,7 +4,13 @@ import cats.kernel.Eq
 import cats.implicits._
 import enumeratum._
 
+import scala.math.BigDecimal.RoundingMode
+
 final case class Money(currency: Currency, amount: MoneyAmount) {
+
+  def floor: Money = copy(amount = amount.setScale(currency.scale, RoundingMode.FLOOR))
+
+  def ceiling: Money = copy(amount = amount.setScale(currency.scale, RoundingMode.CEILING))
 
   @SuppressWarnings(Array("org.wartremover.warts.Throw"))
   def unsafe_+(other: Money): Money = {
@@ -19,7 +25,7 @@ final case class Money(currency: Currency, amount: MoneyAmount) {
   def *(i: Int): Money = copy(amount = amount * i)
 
   // TODO currency 따라서 scaling
-  def /(i: Int): Money = copy(amount = amount * i)
+  def /(i: Int): Money = copy(amount = amount / i)
 
 }
 
@@ -39,20 +45,20 @@ object Money {
   implicit val eqMoney: Eq[Money] = Eq.fromUniversalEquals
 }
 
-sealed trait Currency extends EnumEntry
+sealed abstract class Currency(val scale: Int) extends EnumEntry with Product with Serializable
 
 object Currency extends Enum[Currency] {
-  case object USD extends Currency
-  case object KRW extends Currency
-  case object JPY extends Currency
-  case object CNY extends Currency
-  case object HKD extends Currency
-  case object EUR extends Currency
-  case object SGD extends Currency
-  case object CAD extends Currency
-  case object CHF extends Currency
-  case object AUD extends Currency
-  case object GBP extends Currency
+  case object USD extends Currency(2)
+  case object KRW extends Currency(0)
+  case object JPY extends Currency(0)
+  case object CNY extends Currency(0)
+  case object HKD extends Currency(0)
+  case object EUR extends Currency(0)
+  case object SGD extends Currency(0)
+  case object CAD extends Currency(0)
+  case object CHF extends Currency(0)
+  case object AUD extends Currency(0)
+  case object GBP extends Currency(0)
 
   override def values: IndexedSeq[Currency] = findValues
 
