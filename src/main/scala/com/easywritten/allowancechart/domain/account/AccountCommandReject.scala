@@ -10,9 +10,11 @@ sealed abstract class AccountCommandReject(message: String, cause: Option[Throwa
 
 object AccountCommandReject {
 
+  case object InsufficientBalance extends AccountCommandReject("Insufficient balance", None)
+
   final case class FromThrowable(cause: Option[Throwable]) extends AccountCommandReject("Made from Throwable", cause)
 
-  final case object Unknown extends AccountCommandReject("Account command rejected for unknown reason", None)
+  case object Unknown extends AccountCommandReject("Account command rejected for unknown reason", None)
 
   @SuppressWarnings(Array("org.wartremover.warts.All"))
   implicit val accountCommandRejectPickler: Pickler[AccountCommandReject] = generatePickler
