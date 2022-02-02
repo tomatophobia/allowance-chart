@@ -57,7 +57,7 @@ object AccountSpec extends DefaultRunnableSpec {
         val expectedBalance = MoneyBag(Map(Currency.USD -> BigDecimal(420.43), Currency.KRW -> BigDecimal(298096)))
 
         (for {
-          (accountEntity, probe) <- testEntityWithProbe[
+          (accountEntity, _) <- testEntityWithProbe[
             String,
             Account,
             AccountState,
@@ -75,6 +75,21 @@ object AccountSpec extends DefaultRunnableSpec {
         } yield {
           assert(balance)(equalTo(expectedBalance))
         }).provideSomeLayer[Environment](layer)
-      }
+      },
+      testM("Cannot withdraw money when there is not enough balance") {
+        (for {
+          (accountEntity, _) <- testEntityWithProbe[
+            String,
+            Account,
+            AccountState,
+            AccountEvent,
+            AccountCommandReject
+          ]
+          _ <- accountEntity("key").deposit(Money.usd(100))
+          failure <- accountEntity("key").withdraw(Money.usd(123.12)).run
+        } yield {
+          assert(failure)(fails(equalTo(AccountCommandReject.InsufficientBalance)))
+        }).provideSomeLayer[Environment](layer)
+      },
     )
 }
