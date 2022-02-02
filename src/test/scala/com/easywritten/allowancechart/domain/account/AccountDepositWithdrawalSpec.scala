@@ -73,7 +73,7 @@ object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
           _ <- accountEntity("key").deposit(Money.usd(100))
           failure <- accountEntity("key").withdraw(Money.usd(123.12)).run
         } yield {
-          assert(failure)(fails(equalTo(AccountCommandReject.InsufficientBalance)))
+          assert(failure)(fails(equalTo(AccountCommandReject.InsufficientBalance("Withdrawal failed"))))
         }).provideSomeLayer[Environment](layer)
       }
     )
@@ -86,9 +86,7 @@ object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
       EventSourcedBehaviour[Account, AccountState, AccountEvent, AccountCommandReject](
         new EventSourcedAccount(_),
         EventSourcedAccount.eventHandlerLogic,
-        e => {
-          AccountCommandReject.FromThrowable(Option(e))
-        }
+        AccountCommandReject.FromThrowable
       )
     )
 }
