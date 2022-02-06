@@ -1,6 +1,7 @@
 package com.easywritten.allowancechart.domain.account
 
 import com.easywritten.allowancechart.domain.{Currency, Holding, Money, MoneyBag, TickerSymbol}
+import zio._
 import zio.clock.Clock
 import zio.duration.durationInt
 import zio.entity.core._
@@ -8,8 +9,6 @@ import zio.entity.test.TestEntityRuntime._
 import zio.entity.test.TestMemoryStores
 import zio.test.Assertion._
 import zio.test._
-
-import java.time.Instant
 
 object AccountBuySellStockSpec extends DefaultRunnableSpec {
   override def spec: ZSpec[Environment, Failure] = {
@@ -22,6 +21,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
           Map("AAPL" -> Holding("AAPL", Money.usd(171.1), 5), "005930" -> Holding("005930", Money.krw(69742), 12))
 
         (for {
+          now <- ZIO.accessM[Clock](_.get.currentDateTime.map(_.toInstant))
           (accountEntity, _) <- testEntityWithProbe[
             String,
             Account,
@@ -32,10 +32,10 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
           _ <- accountEntity("key").deposit(Money.krw(1000000))
           _ <- accountEntity("key").deposit(Money.usd(1000))
 
-          _ <- accountEntity("key").buy("AAPL", Money.usd(167.2), 2, Instant.now())
-          _ <- accountEntity("key").buy("AAPL", Money.usd(173.7), 3, Instant.now())
-          _ <- accountEntity("key").buy("005930", Money.krw(71200), 5, Instant.now()) // Samsung Electronics
-          _ <- accountEntity("key").buy("005930", Money.krw(68700), 7, Instant.now()) // Samsung Electronics
+          _ <- accountEntity("key").buy("AAPL", Money.usd(167.2), 2, now)
+          _ <- accountEntity("key").buy("AAPL", Money.usd(173.7), 3, now)
+          _ <- accountEntity("key").buy("005930", Money.krw(71200), 5, now) // Samsung Electronics
+          _ <- accountEntity("key").buy("005930", Money.krw(68700), 7, now) // Samsung Electronics
           balance <- accountEntity("key").balance
           holdings <- accountEntity("key").holdings
         } yield {
@@ -45,6 +45,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
       },
       testM("Cannot buy stock because of insufficient balance") {
         (for {
+          now <- ZIO.accessM[Clock](_.get.currentDateTime.map(_.toInstant))
           (accountEntity, _) <- testEntityWithProbe[
             String,
             Account,
@@ -53,7 +54,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
             AccountCommandReject
           ]
           _ <- accountEntity("key").deposit(Money.usd(1000))
-          failure <- accountEntity("key").buy("AAPL", Money.usd(167.2), 10, Instant.now()).run
+          failure <- accountEntity("key").buy("AAPL", Money.usd(167.2), 10, now).run
         } yield {
           assert(failure)(fails(equalTo(AccountCommandReject.InsufficientBalance("Buying failed"))))
         }).provideSomeLayer[Environment](layer)
@@ -65,6 +66,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
           Map("AAPL" -> Holding("AAPL", Money.usd(167.3), 2), "005930" -> Holding("005930", Money.krw(71200), 4))
 
         (for {
+          now <- ZIO.accessM[Clock](_.get.currentDateTime.map(_.toInstant))
           (accountEntity, _) <- testEntityWithProbe[
             String,
             Account,
@@ -74,11 +76,11 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
           ]
           _ <- accountEntity("key").deposit(Money.krw(1000000))
           _ <- accountEntity("key").deposit(Money.usd(1000))
-          _ <- accountEntity("key").buy("AAPL", Money.usd(167.3), 5, Instant.now())
-          _ <- accountEntity("key").buy("005930", Money.krw(71200), 7, Instant.now()) // Samsung Electronics
+          _ <- accountEntity("key").buy("AAPL", Money.usd(167.3), 5, now)
+          _ <- accountEntity("key").buy("005930", Money.krw(71200), 7, now) // Samsung Electronics
 
-          _ <- accountEntity("key").sell("AAPL", Money.usd(175.7), 3, Instant.now())
-          _ <- accountEntity("key").sell("005930", Money.krw(68800), 3, Instant.now())
+          _ <- accountEntity("key").sell("AAPL", Money.usd(175.7), 3, now)
+          _ <- accountEntity("key").sell("005930", Money.krw(68800), 3, now)
 
           balance <- accountEntity("key").balance
           holdings <- accountEntity("key").holdings
@@ -89,6 +91,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
       },
       testM("Cannot sell stock because of insufficient shares") {
         (for {
+          now <- ZIO.accessM[Clock](_.get.currentDateTime.map(_.toInstant))
           (accountEntity, _) <- testEntityWithProbe[
             String,
             Account,
@@ -97,8 +100,8 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
             AccountCommandReject
           ]
           _ <- accountEntity("key").deposit(Money.usd(1000))
-          _ <- accountEntity("key").buy("AAPL", Money.usd(167.2), 5, Instant.now())
-          failure <- accountEntity("key").sell("AAPL", Money.usd(167.2), 7, Instant.now()).run
+          _ <- accountEntity("key").buy("AAPL", Money.usd(167.2), 5, now)
+          failure <- accountEntity("key").sell("AAPL", Money.usd(167.2), 7, now).run
         } yield {
           assert(failure)(fails(equalTo(AccountCommandReject.InsufficientShares("Selling failed"))))
         }).provideSomeLayer[Environment](layer)
