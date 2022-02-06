@@ -40,6 +40,18 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
         append(AccountEvent.Buy(symbol, averagePrice, quantity, contractedAt))
       else reject(AccountCommandReject.InsufficientBalance("Buying failed"))
     }
+
+  override def sell(
+      symbol: TickerSymbol,
+      contractPrice: Money,
+      quantity: Int,
+      contractedAt: Instant
+  ): IO[AccountCommandReject, Unit] =
+    read flatMap { state =>
+      if (state.getQuantityBySymbol(symbol) >= quantity)
+        append(AccountEvent.Sell(symbol, contractPrice, quantity, contractedAt))
+      else reject(AccountCommandReject.InsufficientShares("Selling failed"))
+    }
 }
 
 object EventSourcedAccount {
@@ -66,6 +78,16 @@ object EventSourcedAccount {
             balance = state.balance - averagePrice * quantity,
             holdings = state.holdings.updated(symbol, nextHolding)
           )
+        )
+      case (state, AccountEvent.Sell(symbol, contractPrice, quantity, _)) =>
+        for {
+          nextHolding <- state.holdings.get(symbol) match {
+            case Some(h) => UIO.succeed(h.copy(quantity = h.quantity - quantity))
+            case _       => impossible
+          }
+        } yield state.copy(
+          balance = state.balance + contractPrice * quantity,
+          holdings = state.holdings.updated(symbol, nextHolding)
         )
       case _ => impossible
     }

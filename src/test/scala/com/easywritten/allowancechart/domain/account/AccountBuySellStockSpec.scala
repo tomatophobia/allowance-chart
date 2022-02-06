@@ -12,8 +12,9 @@ import zio.test._
 import java.time.Instant
 
 object AccountBuySellStockSpec extends DefaultRunnableSpec {
-  override def spec: ZSpec[Environment, Failure] =
+  override def spec: ZSpec[Environment, Failure] = {
     suite("AccountBuySellStockSpec")(
+      // TODO 총 평가액의 변화가 어떻게 될지 테스트에 반영 (아마 다음 이슈에서..?)
       testM("Buy stock") {
         val expectedBalance: MoneyBag =
           MoneyBag(Map(Currency.USD -> BigDecimal(144.5), Currency.KRW -> BigDecimal(163100)))
@@ -41,8 +42,69 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
           assert(balance)(equalTo(expectedBalance)) &&
           assert(holdings)(equalTo(expectedHoldings))
         }).provideSomeLayer[Environment](layer)
+      },
+      testM("Cannot buy stock because of insufficient balance") {
+        (for {
+          (accountEntity, _) <- testEntityWithProbe[
+            String,
+            Account,
+            AccountState,
+            AccountEvent,
+            AccountCommandReject
+          ]
+          _ <- accountEntity("key").deposit(Money.usd(1000))
+          failure <- accountEntity("key").buy("AAPL", Money.usd(167.2), 10, Instant.now()).run
+        } yield {
+          assert(failure)(fails(equalTo(AccountCommandReject.InsufficientBalance("Buying failed"))))
+        }).provideSomeLayer[Environment](layer)
+      },
+      testM("Sell stock") {
+        val expectedBalance: MoneyBag =
+          MoneyBag(Map(Currency.USD -> BigDecimal(690.6), Currency.KRW -> BigDecimal(708000)))
+        val expectedHoldings: Map[TickerSymbol, Holding] =
+          Map("AAPL" -> Holding("AAPL", Money.usd(167.3), 2), "005930" -> Holding("005930", Money.krw(71200), 4))
+
+        (for {
+          (accountEntity, _) <- testEntityWithProbe[
+            String,
+            Account,
+            AccountState,
+            AccountEvent,
+            AccountCommandReject
+          ]
+          _ <- accountEntity("key").deposit(Money.krw(1000000))
+          _ <- accountEntity("key").deposit(Money.usd(1000))
+          _ <- accountEntity("key").buy("AAPL", Money.usd(167.3), 5, Instant.now())
+          _ <- accountEntity("key").buy("005930", Money.krw(71200), 7, Instant.now()) // Samsung Electronics
+
+          _ <- accountEntity("key").sell("AAPL", Money.usd(175.7), 3, Instant.now())
+          _ <- accountEntity("key").sell("005930", Money.krw(68800), 3, Instant.now())
+
+          balance <- accountEntity("key").balance
+          holdings <- accountEntity("key").holdings
+        } yield {
+          assert(balance)(equalTo(expectedBalance)) &&
+            assert(holdings)(equalTo(expectedHoldings))
+        }).provideSomeLayer[Environment](layer)
+      },
+      testM("Cannot sell stock because of insufficient shares") {
+        (for {
+          (accountEntity, _) <- testEntityWithProbe[
+            String,
+            Account,
+            AccountState,
+            AccountEvent,
+            AccountCommandReject
+          ]
+          _ <- accountEntity("key").deposit(Money.usd(1000))
+          _ <- accountEntity("key").buy("AAPL", Money.usd(167.2), 5, Instant.now())
+          failure <- accountEntity("key").sell("AAPL", Money.usd(167.2), 7, Instant.now()).run
+        } yield {
+          assert(failure)(fails(equalTo(AccountCommandReject.InsufficientShares("Selling failed"))))
+        }).provideSomeLayer[Environment](layer)
       }
     )
+  }
 
   import EventSourcedAccount.accountProtocol
 
