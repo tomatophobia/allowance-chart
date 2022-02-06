@@ -43,6 +43,21 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
           assert(holdings)(equalTo(expectedHoldings))
         }).provideSomeLayer[Environment](layer)
       },
+      testM("Cannot buy stock because of insufficient balance") {
+        (for {
+          (accountEntity, _) <- testEntityWithProbe[
+            String,
+            Account,
+            AccountState,
+            AccountEvent,
+            AccountCommandReject
+          ]
+          _ <- accountEntity("key").deposit(Money.usd(1000))
+          failure <- accountEntity("key").buy("AAPL", Money.usd(167.2), 10, Instant.now()).run
+        } yield {
+          assert(failure)(fails(equalTo(AccountCommandReject.InsufficientBalance("Buying failed"))))
+        }).provideSomeLayer[Environment](layer)
+      },
       testM("Sell stock") {
         val expectedBalance: MoneyBag =
           MoneyBag(Map(Currency.USD -> BigDecimal(690.6), Currency.KRW -> BigDecimal(708000)))
@@ -70,6 +85,22 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
         } yield {
           assert(balance)(equalTo(expectedBalance)) &&
             assert(holdings)(equalTo(expectedHoldings))
+        }).provideSomeLayer[Environment](layer)
+      },
+      testM("Cannot sell stock because of insufficient shares") {
+        (for {
+          (accountEntity, _) <- testEntityWithProbe[
+            String,
+            Account,
+            AccountState,
+            AccountEvent,
+            AccountCommandReject
+          ]
+          _ <- accountEntity("key").deposit(Money.usd(1000))
+          _ <- accountEntity("key").buy("AAPL", Money.usd(167.2), 5, Instant.now())
+          failure <- accountEntity("key").sell("AAPL", Money.usd(167.2), 7, Instant.now()).run
+        } yield {
+          assert(failure)(fails(equalTo(AccountCommandReject.InsufficientShares("Selling failed"))))
         }).provideSomeLayer[Environment](layer)
       }
     )
