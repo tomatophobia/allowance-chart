@@ -13,6 +13,8 @@ object AccountCommandReject {
 
   final case class InsufficientBalance(message: String) extends AccountCommandReject(message, None)
 
+  final case class InsufficientShares(message: String) extends AccountCommandReject(message, None)
+
   final case class FromThrowable(cause: Throwable) extends AccountCommandReject("Made from Throwable", Option(cause))
 
   case object Unknown extends AccountCommandReject("Account command rejected for unknown reason", None)

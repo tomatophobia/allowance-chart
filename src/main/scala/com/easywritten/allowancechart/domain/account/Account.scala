@@ -27,4 +27,12 @@ trait Account {
       contractedAt: Instant
   ): IO[AccountCommandReject, Unit]
 
+  @Id(6)
+  def sell(
+      symbol: TickerSymbol,
+      contractPrice: Money,
+      quantity: Int,
+      contractedAt: Instant
+  ): IO[AccountCommandReject, Unit]
+
 }

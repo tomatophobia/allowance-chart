@@ -12,6 +12,9 @@ object AccountEvent {
 
   final case class Withdrawal(money: Money) extends AccountEvent
 
-  final case class Buy(str: TickerSymbol, averagePrice: Money, quantity: Int, contractedAt: Instant)
+  final case class Buy(symbol: TickerSymbol, averagePrice: Money, quantity: Int, contractedAt: Instant)
+      extends AccountEvent
+
+  final case class Sell(symbol: TickerSymbol, contractPrice: Money, quantity: Int, contractedAt: Instant)
       extends AccountEvent
 }
