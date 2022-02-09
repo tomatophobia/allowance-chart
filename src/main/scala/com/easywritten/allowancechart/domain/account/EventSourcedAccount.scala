@@ -19,6 +19,8 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
 
   override def holdings: IO[AccountCommandReject, Map[TickerSymbol, Holding]] = read map (_.holdings)
 
+  override def netValue: IO[AccountCommandReject, MoneyBag] = read map (_.netValue)
+
   override def deposit(money: Money): IO[AccountCommandReject, Unit] = read flatMap { _ =>
     append(AccountEvent.Deposit(money)).unit
   }

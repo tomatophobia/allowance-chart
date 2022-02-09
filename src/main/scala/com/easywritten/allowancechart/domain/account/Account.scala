@@ -14,12 +14,15 @@ trait Account {
   def holdings: IO[AccountCommandReject, Map[TickerSymbol, Holding]]
 
   @Id(3)
-  def deposit(money: Money): IO[AccountCommandReject, Unit]
+  def netValue: IO[AccountCommandReject, MoneyBag]
 
   @Id(4)
-  def withdraw(money: Money): IO[AccountCommandReject, Unit]
+  def deposit(money: Money): IO[AccountCommandReject, Unit]
 
   @Id(5)
+  def withdraw(money: Money): IO[AccountCommandReject, Unit]
+
+  @Id(6)
   def buy(
       symbol: TickerSymbol,
       averagePrice: Money,
@@ -27,7 +30,7 @@ trait Account {
       contractedAt: Instant
   ): IO[AccountCommandReject, Unit]
 
-  @Id(6)
+  @Id(7)
   def sell(
       symbol: TickerSymbol,
       contractPrice: Money,

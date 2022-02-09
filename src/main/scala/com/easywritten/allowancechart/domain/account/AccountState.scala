@@ -8,6 +8,10 @@ final case class AccountState(
 ) {
   def getQuantityBySymbol(symbol: TickerSymbol): Int =
     holdings(symbol).quantity
+
+  def netValue: MoneyBag = holdings.foldLeft(balance) {
+    case (acc, (_, holding)) => acc + holding.averagePrice * holding.quantity
+  }
 }
 
 object AccountState {
