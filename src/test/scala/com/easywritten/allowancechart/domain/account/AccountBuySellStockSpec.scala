@@ -16,9 +16,11 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
       // TODO 총 평가액의 변화가 어떻게 될지 테스트에 반영 (아마 다음 이슈에서..?)
       testM("Buy stock") {
         val expectedBalance: MoneyBag =
-          MoneyBag(Map(Currency.USD -> BigDecimal(144.5), Currency.KRW -> BigDecimal(163100)))
+          MoneyBag(Map(Currency.USD -> Money.usd(144.5), Currency.KRW -> Money.krw(163100)))
         val expectedHoldings: Map[TickerSymbol, Holding] =
           Map("AAPL" -> Holding("AAPL", Money.usd(171.1), 5), "005930" -> Holding("005930", Money.krw(69742), 12))
+        val expectedNetValue: MoneyBag =
+          MoneyBag(Map(Currency.USD -> Money.usd(1000), Currency.KRW -> Money.krw(1000000)))
 
         (for {
           now <- ZIO.accessM[Clock](_.get.currentDateTime.map(_.toInstant))
@@ -38,9 +40,11 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
           _ <- accountEntity("key").buy("005930", Money.krw(68700), 7, now) // Samsung Electronics
           balance <- accountEntity("key").balance
           holdings <- accountEntity("key").holdings
+          netValue <- accountEntity("key").netValue
         } yield {
           assert(balance)(equalTo(expectedBalance)) &&
-          compareHoldings(holdings, expectedHoldings)
+          compareHoldings(holdings, expectedHoldings) &&
+          assert(netValue.halfUpAll)(equalTo(expectedNetValue.halfUpAll))
         }).provideSomeLayer[Environment](layer)
       },
       testM("Cannot buy stock because of insufficient balance") {
@@ -61,9 +65,11 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
       },
       testM("Sell stock") {
         val expectedBalance: MoneyBag =
-          MoneyBag(Map(Currency.USD -> BigDecimal(690.6), Currency.KRW -> BigDecimal(708000)))
+          MoneyBag(Map(Currency.USD -> Money.usd(690.6), Currency.KRW -> Money.krw(708000)))
         val expectedHoldings: Map[TickerSymbol, Holding] =
           Map("AAPL" -> Holding("AAPL", Money.usd(167.3), 2), "005930" -> Holding("005930", Money.krw(71200), 4))
+        val expectedNetValue: MoneyBag =
+          MoneyBag(Map(Currency.USD -> Money.usd(1025.2), Currency.KRW -> Money.krw(992800)))
 
         (for {
           now <- ZIO.accessM[Clock](_.get.currentDateTime.map(_.toInstant))
@@ -84,9 +90,11 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
 
           balance <- accountEntity("key").balance
           holdings <- accountEntity("key").holdings
+          netValue <- accountEntity("key").netValue
         } yield {
           assert(balance)(equalTo(expectedBalance)) &&
-          assert(holdings)(equalTo(expectedHoldings))
+          compareHoldings(holdings, expectedHoldings) &&
+          assert(netValue.halfUpAll)(equalTo(expectedNetValue.halfUpAll))
         }).provideSomeLayer[Environment](layer)
       },
       testM("Cannot sell stock because of insufficient shares") {
