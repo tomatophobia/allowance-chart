@@ -69,9 +69,7 @@ object EventSourcedAccount {
         val nextHolding = state.holdings.get(symbol) match {
           case Some(h) =>
             val nextQuantity = h.quantity + quantity
-            // 올림함으로써 평단가를 높게 잡아 수익률이 보수적으로 측정되도록 함, 대신 매수 후 총 평가액도 그만큼 오차가 생김
-            val nextAveragePrice =
-              (((h.averagePrice * h.quantity) unsafe_+ (averagePrice * quantity)) / nextQuantity).ceiling
+            val nextAveragePrice = ((h.averagePrice * h.quantity) unsafe_+ (averagePrice * quantity)) / nextQuantity
             h.copy(quantity = nextQuantity, averagePrice = nextAveragePrice)
           case None => Holding(symbol, averagePrice, quantity)
         }

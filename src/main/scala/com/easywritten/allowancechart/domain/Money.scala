@@ -12,6 +12,8 @@ final case class Money(currency: Currency, amount: MoneyAmount) {
 
   def ceiling: Money = copy(amount = amount.setScale(currency.scale, RoundingMode.CEILING))
 
+  def halfUp: Money = copy(amount = amount.setScale(currency.scale, RoundingMode.HALF_UP))
+
   @SuppressWarnings(Array("org.wartremover.warts.Throw"))
   def unsafe_+(other: Money): Money = {
     if (currency === other.currency)
