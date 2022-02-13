@@ -129,6 +129,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
       )
     )
 
+  // TODO 다른 곳에서도 사용할 수 있으므로 적절한 위치로 이동
   /** holdings의 holding들을 각각 비교한다. 무한소수인 경우, 통화별로 정해진 소수점 자릿수에서 반올림하여 비교한다.
     */
   private def compareHoldings(
