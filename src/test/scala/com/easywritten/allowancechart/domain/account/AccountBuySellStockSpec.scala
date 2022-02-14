@@ -11,7 +11,7 @@ import zio.test.Assertion._
 import zio.test._
 
 object AccountBuySellStockSpec extends DefaultRunnableSpec {
-  override def spec: ZSpec[Environment, Failure] = {
+  override def spec: ZSpec[Environment, Failure] =
     suite("AccountBuySellStockSpec")(
       // TODO 총 평가액의 변화가 어떻게 될지 테스트에 반영 (아마 다음 이슈에서..?)
       testM("Buy stock") {
@@ -115,7 +115,6 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
         }).provideSomeLayer[Environment](layer)
       }
     )
-  }
 
   import EventSourcedAccount.accountProtocol
 
