@@ -20,6 +20,8 @@ object Assertion {
     }
   }
 
+  /** net value 비교 시 반올림하여 비교
+    */
   def compareNetValue(
       actual: MoneyBag,
       expected: MoneyBag
