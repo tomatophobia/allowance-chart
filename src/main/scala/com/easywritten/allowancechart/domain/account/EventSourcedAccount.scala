@@ -57,7 +57,7 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
 }
 
 object EventSourcedAccount {
-  val tagging: Const[String] = Tagging.const[String](EventTag("Account"))
+  val tagging: Const[AccountName] = Tagging.const[AccountName](EventTag("Account"))
 
   val eventHandlerLogic: Fold[AccountState, AccountEvent] = Fold(
     initial = AccountState.init,
