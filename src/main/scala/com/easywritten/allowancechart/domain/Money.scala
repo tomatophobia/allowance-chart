@@ -26,7 +26,6 @@ final case class Money(currency: Currency, amount: MoneyAmount) {
 
   def *(i: Int): Money = copy(amount = amount * i)
 
-  // TODO currency 따라서 scaling
   def /(i: Int): Money = copy(amount = amount / i)
 
 }

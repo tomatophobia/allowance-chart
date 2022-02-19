@@ -23,9 +23,5 @@ lazy val root = (project in file("."))
       // for zio
       Wart.Any,
       Wart.Nothing,
-      // 필요함
-      Wart.Var
     ),
-    // TODO warning 많아지면 잘 안보게 될테니 어떻게든 없애던가 아니면 그냥 전체 허용을 하던가
-    wartremoverWarnings ++= Seq(Wart.Var)
   )
