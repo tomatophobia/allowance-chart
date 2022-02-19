@@ -1,7 +1,7 @@
 package com.easywritten.allowancechart.domain.account
 
 import boopickle.Pickler
-import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, TickerSymbol}
+import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, TickerSymbol, TransactionCost}
 import zio._
 import zio.entity.core.{Combinators, Fold}
 import zio.entity.data.Tagging.Const
@@ -13,8 +13,8 @@ import java.time.Instant
 class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, AccountCommandReject]) extends Account {
   import combinators._
 
-  override def initialize(fee: BigDecimal): IO[AccountCommandReject, Unit] = read flatMap {
-    case PartialAccountState => append(AccountEvent.Initialize(fee))
+  override def initialize(cost: TransactionCost): IO[AccountCommandReject, Unit] = read flatMap {
+    case PartialAccountState => append(AccountEvent.Initialize(cost))
     case _                   => reject(AccountCommandReject.AccountAlreadyInitialized)
   }
 

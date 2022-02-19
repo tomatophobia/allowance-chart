@@ -1,6 +1,6 @@
 package com.easywritten.allowancechart.domain.account
 
-import com.easywritten.allowancechart.domain.{Holding, MoneyBag, TickerSymbol}
+import com.easywritten.allowancechart.domain.{Holding, MoneyBag, TickerSymbol, TransactionCost}
 import zio.entity.core.Fold.impossible
 import zio._
 
@@ -14,8 +14,8 @@ object AccountState {
 
 case object PartialAccountState extends AccountState {
   override def handleEvent(e: AccountEvent): Task[AccountState] = e match {
-    case AccountEvent.Initialize(fee) =>
-      Task.succeed(FullAccountState(balance = MoneyBag.empty, holdings = Map(), fee = fee))
+    case AccountEvent.Initialize(cost) =>
+      Task.succeed(FullAccountState(balance = MoneyBag.empty, holdings = Map(), cost = cost))
     case _ => impossible
   }
 }
@@ -23,7 +23,7 @@ case object PartialAccountState extends AccountState {
 final case class FullAccountState(
     balance: MoneyBag,
     holdings: Map[TickerSymbol, Holding],
-    fee: BigDecimal
+    cost: TransactionCost
 ) extends AccountState {
   def getQuantityBySymbol(symbol: TickerSymbol): Int =
     holdings(symbol).quantity

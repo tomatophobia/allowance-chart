@@ -5,10 +5,10 @@ import zio.entity.test.TestEntityRuntime.testEntityWithProbe
 import zio.test._
 import zio.test.Assertion._
 
-object AccountRegisterSpec extends DefaultRunnableSpec {
+object AccountInitializeSpec extends DefaultRunnableSpec {
   override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] =
-    suite("AccountRegisterSpec")(
-      testM("All events are rejected before register account") {
+    suite("AccountInitializeSpec")(
+      testM("All events are rejected before initialize account") {
         val key = AccountName("key")
 
         for {

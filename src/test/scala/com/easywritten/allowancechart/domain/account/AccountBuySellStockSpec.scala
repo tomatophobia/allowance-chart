@@ -1,7 +1,7 @@
 package com.easywritten.allowancechart.domain.account
 
 import Assertion._
-import com.easywritten.allowancechart.domain.{Currency, Holding, Money, MoneyBag, TickerSymbol}
+import com.easywritten.allowancechart.domain.{Currency, Holding, Money, MoneyBag, TickerSymbol, TransactionCost}
 import zio._
 import zio.clock.Clock
 import zio.entity.test.TestEntityRuntime._
@@ -30,7 +30,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
             AccountEvent,
             AccountCommandReject
           ]
-          _ <- accountEntity(key).initialize(0)
+          _ <- accountEntity(key).initialize(TransactionCost.zero)
 
           _ <- accountEntity(key).deposit(Money.krw(1000000))
           _ <- accountEntity(key).deposit(Money.usd(1000))
@@ -59,7 +59,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
             AccountEvent,
             AccountCommandReject
           ]
-          _ <- accountEntity(key).initialize(0)
+          _ <- accountEntity(key).initialize(TransactionCost.zero)
 
           _ <- accountEntity(key).deposit(Money.usd(1000))
           failure <- accountEntity(key).buy("AAPL", Money.usd(167.2), 10, now).run
@@ -85,7 +85,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
             AccountEvent,
             AccountCommandReject
           ]
-          _ <- accountEntity(key).initialize(0)
+          _ <- accountEntity(key).initialize(TransactionCost.zero)
 
           _ <- accountEntity(key).deposit(Money.krw(1000000))
           _ <- accountEntity(key).deposit(Money.usd(1000))
@@ -115,7 +115,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
             AccountEvent,
             AccountCommandReject
           ]
-          _ <- accountEntity(key).initialize(0)
+          _ <- accountEntity(key).initialize(TransactionCost.zero)
 
           _ <- accountEntity(key).deposit(Money.usd(1000))
           _ <- accountEntity(key).buy("AAPL", Money.usd(167.2), 5, now)
