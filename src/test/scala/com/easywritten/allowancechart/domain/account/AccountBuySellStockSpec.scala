@@ -30,6 +30,8 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
             AccountEvent,
             AccountCommandReject
           ]
+          _ <- accountEntity(key).initialize(0)
+
           _ <- accountEntity(key).deposit(Money.krw(1000000))
           _ <- accountEntity(key).deposit(Money.usd(1000))
 
@@ -57,6 +59,8 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
             AccountEvent,
             AccountCommandReject
           ]
+          _ <- accountEntity(key).initialize(0)
+
           _ <- accountEntity(key).deposit(Money.usd(1000))
           failure <- accountEntity(key).buy("AAPL", Money.usd(167.2), 10, now).run
         } yield {
@@ -81,6 +85,8 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
             AccountEvent,
             AccountCommandReject
           ]
+          _ <- accountEntity(key).initialize(0)
+
           _ <- accountEntity(key).deposit(Money.krw(1000000))
           _ <- accountEntity(key).deposit(Money.usd(1000))
           _ <- accountEntity(key).buy("AAPL", Money.usd(167.3), 5, now)
@@ -109,6 +115,8 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
             AccountEvent,
             AccountCommandReject
           ]
+          _ <- accountEntity(key).initialize(0)
+
           _ <- accountEntity(key).deposit(Money.usd(1000))
           _ <- accountEntity(key).buy("AAPL", Money.usd(167.2), 5, now)
           failure <- accountEntity(key).sell("AAPL", Money.usd(167.2), 7, now).run

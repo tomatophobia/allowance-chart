@@ -11,6 +11,10 @@ sealed abstract class AccountCommandReject(message: String, cause: Option[Throwa
 
 object AccountCommandReject {
 
+  case object AccountNotInitialized extends AccountCommandReject("Account is not initialized", None)
+
+  case object AccountAlreadyInitialized extends AccountCommandReject("Account is already initialized", None)
+
   final case class InsufficientBalance(message: String) extends AccountCommandReject(message, None)
 
   final case class InsufficientShares(message: String) extends AccountCommandReject(message, None)

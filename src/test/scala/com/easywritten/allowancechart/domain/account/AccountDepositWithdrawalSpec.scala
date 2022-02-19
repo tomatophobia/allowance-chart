@@ -28,6 +28,8 @@ object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
             AccountEvent,
             AccountCommandReject
           ]
+          _ <- accountEntity(key).initialize(0)
+
           _ <- accountEntity(key).deposit(moneys(0))
           _ <- accountEntity(key).deposit(moneys(1))
           _ <- accountEntity(key).deposit(moneys(2))
@@ -36,7 +38,7 @@ object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
           balance <- accountEntity(key).balance
           netValue <- accountEntity(key).netValue
         } yield {
-          assert(events)(equalTo(moneys.map(AccountEvent.Deposit))) &&
+          assert(events)(equalTo(AccountEvent.Initialize(0) :: moneys.map[AccountEvent](AccountEvent.Deposit))) &&
           assert(balance)(equalTo(expectedBalance)) &&
           assert(netValue)(equalTo(expectedBalance))
         }
@@ -54,6 +56,8 @@ object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
             AccountEvent,
             AccountCommandReject
           ]
+          _ <- accountEntity(key).initialize(0)
+
           _ <- accountEntity(key).deposit(Money.usd(1000))
           _ <- accountEntity(key).deposit(Money.krw(1000000))
 
@@ -78,6 +82,8 @@ object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
             AccountEvent,
             AccountCommandReject
           ]
+          _ <- accountEntity(key).initialize(0)
+
           _ <- accountEntity(key).deposit(Money.usd(100))
           failure <- accountEntity(key).withdraw(Money.usd(123.12)).run
         } yield {

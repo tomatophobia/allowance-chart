@@ -8,21 +8,24 @@ import java.time.Instant
 
 trait Account {
   @Id(1)
-  def balance: IO[AccountCommandReject, MoneyBag]
+  def initialize(fee: BigDecimal): IO[AccountCommandReject, Unit]
 
   @Id(2)
-  def holdings: IO[AccountCommandReject, Map[TickerSymbol, Holding]]
+  def balance: IO[AccountCommandReject, MoneyBag]
 
   @Id(3)
-  def netValue: IO[AccountCommandReject, MoneyBag]
+  def holdings: IO[AccountCommandReject, Map[TickerSymbol, Holding]]
 
   @Id(4)
-  def deposit(money: Money): IO[AccountCommandReject, Unit]
+  def netValue: IO[AccountCommandReject, MoneyBag]
 
   @Id(5)
-  def withdraw(money: Money): IO[AccountCommandReject, Unit]
+  def deposit(money: Money): IO[AccountCommandReject, Unit]
 
   @Id(6)
+  def withdraw(money: Money): IO[AccountCommandReject, Unit]
+
+  @Id(7)
   def buy(
       symbol: TickerSymbol,
       averagePrice: Money,
@@ -30,7 +33,7 @@ trait Account {
       contractedAt: Instant
   ): IO[AccountCommandReject, Unit]
 
-  @Id(7)
+  @Id(8)
   def sell(
       symbol: TickerSymbol,
       contractPrice: Money,
