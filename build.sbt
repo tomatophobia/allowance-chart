@@ -22,6 +22,6 @@ lazy val root = (project in file("."))
     wartremoverErrors ++= Warts.allBut(
       // for zio
       Wart.Any,
-      Wart.Nothing,
-    ),
+      Wart.Nothing
+    )
   )

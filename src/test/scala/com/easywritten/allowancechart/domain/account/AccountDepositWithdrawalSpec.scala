@@ -23,15 +23,16 @@ object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
             AccountEvent,
             AccountCommandReject
           ]
-          _ <- accountEntity(key).initialize(TransactionCost.zero)
+          account = accountEntity(key)
+          _ <- account.initialize(TransactionCost.zero)
 
-          _ <- accountEntity(key).deposit(moneys(0))
-          _ <- accountEntity(key).deposit(moneys(1))
-          _ <- accountEntity(key).deposit(moneys(2))
-          _ <- accountEntity(key).deposit(moneys(3))
+          _ <- account.deposit(moneys(0))
+          _ <- account.deposit(moneys(1))
+          _ <- account.deposit(moneys(2))
+          _ <- account.deposit(moneys(3))
           events <- probe.probeForKey(key).events
-          balance <- accountEntity(key).balance
-          netValue <- accountEntity(key).netValue
+          balance <- account.balance
+          netValue <- account.netValue
         } yield {
           assert(events)(
             equalTo(AccountEvent.Initialize(TransactionCost.zero) :: moneys.map[AccountEvent](AccountEvent.Deposit))
@@ -53,17 +54,18 @@ object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
             AccountEvent,
             AccountCommandReject
           ]
-          _ <- accountEntity(key).initialize(TransactionCost.zero)
+          account = accountEntity(key)
+          _ <- account.initialize(TransactionCost.zero)
 
-          _ <- accountEntity(key).deposit(Money.usd(1000))
-          _ <- accountEntity(key).deposit(Money.krw(1000000))
+          _ <- account.deposit(Money.usd(1000))
+          _ <- account.deposit(Money.krw(1000000))
 
-          _ <- accountEntity(key).withdraw(Money.usd(123.12))
-          _ <- accountEntity(key).withdraw(Money.usd(456.45))
-          _ <- accountEntity(key).withdraw(Money.krw(232579))
-          _ <- accountEntity(key).withdraw(Money.krw(469325))
-          balance <- accountEntity(key).balance
-          netValue <- accountEntity(key).netValue
+          _ <- account.withdraw(Money.usd(123.12))
+          _ <- account.withdraw(Money.usd(456.45))
+          _ <- account.withdraw(Money.krw(232579))
+          _ <- account.withdraw(Money.krw(469325))
+          balance <- account.balance
+          netValue <- account.netValue
         } yield {
           assert(balance)(equalTo(expectedBalance)) &&
           assert(netValue)(equalTo(expectedBalance))
@@ -79,10 +81,11 @@ object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
             AccountEvent,
             AccountCommandReject
           ]
-          _ <- accountEntity(key).initialize(TransactionCost.zero)
+          account = accountEntity(key)
+          _ <- account.initialize(TransactionCost.zero)
 
-          _ <- accountEntity(key).deposit(Money.usd(100))
-          failure <- accountEntity(key).withdraw(Money.usd(123.12)).run
+          _ <- account.deposit(Money.usd(100))
+          failure <- account.withdraw(Money.usd(123.12)).run
         } yield {
           assert(failure)(fails(equalTo(AccountCommandReject.InsufficientBalance("Withdrawal failed"))))
         }

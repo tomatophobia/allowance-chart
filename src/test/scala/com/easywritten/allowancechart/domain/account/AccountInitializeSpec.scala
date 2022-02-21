@@ -19,8 +19,8 @@ object AccountInitializeSpec extends DefaultRunnableSpec {
             AccountEvent,
             AccountCommandReject
           ]
-
-          failure <- accountEntity(key).deposit(Money.usd(32.15)).run
+          account = accountEntity(key)
+          failure <- account.deposit(Money.usd(32.15)).run
         } yield assert(failure)(fails(equalTo(AccountCommandReject.AccountNotInitialized)))
       }
     ).provideCustomLayer(TestAccountEntity.layer)
