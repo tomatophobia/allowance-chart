@@ -17,7 +17,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
           val expectedBalance: MoneyBag =
             MoneyBag(Map(Currency.USD -> Money.usd(144.5), Currency.KRW -> Money.krw(163100)))
           val expectedHoldings: Map[TickerSymbol, Holding] =
-            Map("AAPL" -> Holding("AAPL", Money.usd(171.1), 5), "005930" -> Holding("005930", Money.krw(69742), 12))
+            Map("AAPL" -> Holding("AAPL", Money.usd(171.1), 5), "005930" -> Holding("005930", Money.krw(69741.66667), 12))
           val expectedNetValue: MoneyBag =
             MoneyBag(Map(Currency.USD -> Money.usd(1000), Currency.KRW -> Money.krw(1000000)))
 
