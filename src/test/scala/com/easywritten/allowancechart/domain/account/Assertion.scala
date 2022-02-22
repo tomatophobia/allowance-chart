@@ -14,15 +14,21 @@ object Assertion {
   ): TestResult = {
     val keys = actual.keys ++ expected.keys
     keys.foldLeft(assertCompletes) { (asserts, symbol) =>
-      val m1 = actual.get(symbol).map(_.averagePrice.halfUp)
-      val m2 = expected.get(symbol).map(_.averagePrice.halfUp)
-      asserts && assert(m1)(equalTo(m2))
+      val h1 = actual.get(symbol)
+      val m1 = h1.map(_.averagePrice.halfUp)
+      val q1 = h1.map(_.quantity)
+
+      val h2 = expected.get(symbol)
+      val m2 = h2.map(_.averagePrice.halfUp)
+      val q2 = h2.map(_.quantity)
+
+      asserts && assert(m1)(equalTo(m2)) && assert(q1)(equalTo(q2))
     }
   }
 
-  /** net value 비교 시 반올림하여 비교
+  /** MoneyBag 비교 시 반올림하여 비교
     */
-  def compareNetValue(
+  def compareMoneyBag(
       actual: MoneyBag,
       expected: MoneyBag
   ): TestResult = assert(actual.halfUpAll)(equalTo(expected.halfUpAll))

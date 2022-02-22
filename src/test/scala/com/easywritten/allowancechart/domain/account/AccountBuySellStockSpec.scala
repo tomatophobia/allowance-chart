@@ -46,7 +46,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
           } yield {
             assert(balance)(equalTo(expectedBalance)) &&
             compareHoldings(holdings, expectedHoldings) &&
-            compareNetValue(netValue, expectedNetValue)
+            compareMoneyBag(netValue, expectedNetValue)
           }
         },
         testM("Cannot buy stock because of insufficient balance") {
@@ -104,7 +104,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
           } yield {
             assert(balance)(equalTo(expectedBalance)) &&
             compareHoldings(holdings, expectedHoldings) &&
-            compareNetValue(netValue, expectedNetValue)
+            compareMoneyBag(netValue, expectedNetValue)
           }
         },
         testM("Cannot sell stock because of insufficient shares") {
@@ -130,14 +130,17 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
         }
       ),
       suite("BuySellWithCost")(
-        testM("Buy stock") {
+        testM("Buy and sell stock") {
           val key = AccountName("key")
           val expectedBalance: MoneyBag =
-            MoneyBag(Map(Currency.USD -> Money.usd(142.575), Currency.KRW -> Money.krw(161684.4)))
+            MoneyBag(Map(Currency.USD -> Money.usd(499.075), Currency.KRW -> Money.krw(354584.4)))
           val expectedHoldings: Map[TickerSymbol, Holding] =
-            Map("AAPL" -> Holding("AAPL", Money.usd(171.1), 5), "005930" -> Holding("005930", Money.krw(69742), 12))
+            Map(
+              "AAPL" -> Holding("AAPL", Money.usd(171.1), 3),
+              "005930" -> Holding("005930", Money.krw(69741.66667), 9)
+            )
           val expectedNetValue: MoneyBag =
-            MoneyBag(Map(Currency.USD -> Money.usd(998.075), Currency.KRW -> Money.krw(998584.4)))
+            MoneyBag(Map(Currency.USD -> Money.usd(1012.375), Currency.KRW -> Money.krw(982259.4)))
           val cost = TransactionCost(0.001, 0.003)
           // 1415.6, 1.925
           for {
@@ -169,9 +172,9 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
             holdings <- account.holdings
             netValue <- account.netValue
           } yield {
-            assert(balance)(equalTo(expectedBalance)) &&
+            compareMoneyBag(balance, expectedBalance) &&
             compareHoldings(holdings, expectedHoldings) &&
-            compareNetValue(netValue, expectedNetValue)
+            compareMoneyBag(netValue, expectedNetValue)
           }
         }
       )
