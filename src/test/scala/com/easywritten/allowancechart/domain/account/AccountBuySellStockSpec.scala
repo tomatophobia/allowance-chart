@@ -133,13 +133,13 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
         testM("Buy stock") {
           val key = AccountName("key")
           val expectedBalance: MoneyBag =
-            MoneyBag(Map(Currency.USD -> Money.usd(144.5), Currency.KRW -> Money.krw(163100)))
+            MoneyBag(Map(Currency.USD -> Money.usd(142.575), Currency.KRW -> Money.krw(161684.4)))
           val expectedHoldings: Map[TickerSymbol, Holding] =
             Map("AAPL" -> Holding("AAPL", Money.usd(171.1), 5), "005930" -> Holding("005930", Money.krw(69742), 12))
           val expectedNetValue: MoneyBag =
-            MoneyBag(Map(Currency.USD -> Money.usd(1000), Currency.KRW -> Money.krw(1000000)))
-          val cost = TransactionCost(0.01, 0.03)
-
+            MoneyBag(Map(Currency.USD -> Money.usd(998.075), Currency.KRW -> Money.krw(998584.4)))
+          val cost = TransactionCost(0.001, 0.003)
+          // 1415.6, 1.925
           for {
             now <- ZIO.accessM[Clock](_.get.currentDateTime.map(_.toInstant))
             (accountEntity, _) <- testEntityWithProbe[
