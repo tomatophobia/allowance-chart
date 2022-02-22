@@ -24,9 +24,9 @@ final case class Money(currency: Currency, amount: MoneyAmount) {
       )
   }
 
-  def *(i: Int): Money = copy(amount = amount * i)
+  def *(i: BigDecimal): Money = copy(amount = amount * i)
 
-  def /(i: Int): Money = copy(amount = amount / i)
+  def /(i: BigDecimal): Money = copy(amount = amount / i)
 
 }
 

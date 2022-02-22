@@ -36,27 +36,29 @@ final case class FullAccountState(
     case AccountEvent.Deposit(money)    => Task.succeed(copy(balance = balance + money))
     case AccountEvent.Withdrawal(money) => Task.succeed(copy(balance = balance - money))
     case AccountEvent.Buy(symbol, averagePrice, quantity, _) =>
+      val totalAmount = averagePrice * quantity
       val nextHolding = holdings.get(symbol) match {
         case Some(h) =>
           val nextQuantity = h.quantity + quantity
-          val nextAveragePrice = ((h.averagePrice * h.quantity) unsafe_+ (averagePrice * quantity)) / nextQuantity
+          val nextAveragePrice = ((h.averagePrice * h.quantity) unsafe_+ totalAmount) / nextQuantity
           h.copy(quantity = nextQuantity, averagePrice = nextAveragePrice)
         case None => Holding(symbol, averagePrice, quantity)
       }
       Task.succeed(
         copy(
-          balance = balance - averagePrice * quantity,
+          balance = balance - totalAmount - totalAmount * cost.buy,
           holdings = holdings.updated(symbol, nextHolding)
         )
       )
     case AccountEvent.Sell(symbol, contractPrice, quantity, _) =>
+      val totalAmount = contractPrice * quantity
       for {
         nextHolding <- holdings.get(symbol) match {
           case Some(h) => Task.succeed(h.copy(quantity = h.quantity - quantity))
           case _       => impossible
         }
       } yield copy(
-        balance = balance + contractPrice * quantity,
+        balance = balance + totalAmount - totalAmount * cost.sell,
         holdings = holdings.updated(symbol, nextHolding)
       )
     case _ => impossible
