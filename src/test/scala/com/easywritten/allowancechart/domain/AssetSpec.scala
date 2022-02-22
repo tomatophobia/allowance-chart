@@ -1,6 +1,6 @@
 package com.easywritten.allowancechart.domain
 
-import com.easywritten.allowancechart.domain.account.Assertion.{compareHoldings, compareNetValue}
+import com.easywritten.allowancechart.domain.account.Assertion.{compareHoldings, compareMoneyBag}
 import com.easywritten.allowancechart.domain.account.AccountName
 import zio._
 import zio.clock.Clock
@@ -32,6 +32,8 @@ object AssetSpec extends DefaultRunnableSpec {
         asset <- ZIO.service[Asset]
         acc1 = asset.accounts(accountName1)
         acc2 = asset.accounts(accountName2)
+        _ <- acc1.initialize(TransactionCost.zero)
+        _ <- acc2.initialize(TransactionCost.zero)
 
         _ <- acc1.deposit(Money.usd(123.45))
         _ <- acc1.buy("AAPL", Money.usd(32.23), 2, now)
@@ -50,10 +52,10 @@ object AssetSpec extends DefaultRunnableSpec {
         netValue2 <- acc2.netValue
       } yield assert(balance1)(equalTo(expectedBalance1)) &&
         compareHoldings(holdings1, expectedHoldings1) &&
-        compareNetValue(netValue1, expectedNetValue1) &&
+        compareMoneyBag(netValue1, expectedNetValue1) &&
         assert(balance2)(equalTo(expectedBalance2)) &&
         compareHoldings(holdings2, expectedHoldings2) &&
-        compareNetValue(netValue2, expectedNetValue2)
+        compareMoneyBag(netValue2, expectedNetValue2)
     }
   ).provideCustomLayer(TestAsset.layer)
 }
