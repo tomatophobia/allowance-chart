@@ -1,6 +1,6 @@
 package com.easywritten.allowancechart.domain.account
 
-import com.easywritten.allowancechart.domain.{Holding, MoneyBag, TickerSymbol, TransactionCost}
+import com.easywritten.allowancechart.domain.{Holding, MoneyBag, Ticker, TransactionCost}
 import zio.entity.core.Fold.impossible
 import zio._
 
@@ -22,10 +22,10 @@ case object PartialAccountState extends AccountState {
 
 final case class FullAccountState(
     balance: MoneyBag,
-    holdings: Map[TickerSymbol, Holding],
+    holdings: Map[Ticker, Holding],
     cost: TransactionCost
 ) extends AccountState {
-  def getQuantityBySymbol(symbol: TickerSymbol): Int =
+  def getQuantityBySymbol(symbol: Ticker): Int =
     holdings(symbol).quantity
 
   def netValue: MoneyBag = holdings.foldLeft(balance) { case (acc, (_, holding)) =>

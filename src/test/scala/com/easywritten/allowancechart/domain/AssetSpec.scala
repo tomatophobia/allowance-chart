@@ -15,14 +15,14 @@ object AssetSpec extends DefaultRunnableSpec {
 
       val expectedBalance1: MoneyBag =
         MoneyBag(Map(Currency.USD -> Money.usd(55.46)))
-      val expectedHoldings1: Map[TickerSymbol, Holding] =
+      val expectedHoldings1: Map[Ticker, Holding] =
         Map("AAPL" -> Holding("AAPL", Money.usd(32.23), 1))
       val expectedNetValue1: MoneyBag =
         MoneyBag(Map(Currency.USD -> Money.usd(87.69)))
 
       val expectedBalance2: MoneyBag =
         MoneyBag(Map(Currency.KRW -> Money.krw(96261)))
-      val expectedHoldings2: Map[TickerSymbol, Holding] =
+      val expectedHoldings2: Map[Ticker, Holding] =
         Map("005930" -> Holding("005930", Money.krw(78240), 2))
       val expectedNetValue2: MoneyBag =
         MoneyBag(Map(Currency.KRW -> Money.krw(252741)))

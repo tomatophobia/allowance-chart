@@ -1,7 +1,7 @@
 package com.easywritten.allowancechart.domain.account
 
 import Assertion._
-import com.easywritten.allowancechart.domain.{Currency, Holding, Money, MoneyBag, TickerSymbol, TransactionCost}
+import com.easywritten.allowancechart.domain.{Currency, Holding, Money, MoneyBag, Ticker, TransactionCost}
 import zio._
 import zio.clock.Clock
 import zio.entity.test.TestEntityRuntime._
@@ -16,8 +16,11 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
           val key = AccountName("key")
           val expectedBalance: MoneyBag =
             MoneyBag(Map(Currency.USD -> Money.usd(144.5), Currency.KRW -> Money.krw(163100)))
-          val expectedHoldings: Map[TickerSymbol, Holding] =
-            Map("AAPL" -> Holding("AAPL", Money.usd(171.1), 5), "005930" -> Holding("005930", Money.krw(69741.66667), 12))
+          val expectedHoldings: Map[Ticker, Holding] =
+            Map(
+              "AAPL" -> Holding("AAPL", Money.usd(171.1), 5),
+              "005930" -> Holding("005930", Money.krw(69741.66667), 12)
+            )
           val expectedNetValue: MoneyBag =
             MoneyBag(Map(Currency.USD -> Money.usd(1000), Currency.KRW -> Money.krw(1000000)))
 
@@ -73,7 +76,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
           val key = AccountName("key")
           val expectedBalance: MoneyBag =
             MoneyBag(Map(Currency.USD -> Money.usd(690.6), Currency.KRW -> Money.krw(708000)))
-          val expectedHoldings: Map[TickerSymbol, Holding] =
+          val expectedHoldings: Map[Ticker, Holding] =
             Map("AAPL" -> Holding("AAPL", Money.usd(167.3), 2), "005930" -> Holding("005930", Money.krw(71200), 4))
           val expectedNetValue: MoneyBag =
             MoneyBag(Map(Currency.USD -> Money.usd(1025.2), Currency.KRW -> Money.krw(992800)))
@@ -134,7 +137,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
           val key = AccountName("key")
           val expectedBalance: MoneyBag =
             MoneyBag(Map(Currency.USD -> Money.usd(499.075), Currency.KRW -> Money.krw(354584.4)))
-          val expectedHoldings: Map[TickerSymbol, Holding] =
+          val expectedHoldings: Map[Ticker, Holding] =
             Map(
               "AAPL" -> Holding("AAPL", Money.usd(171.1), 3),
               "005930" -> Holding("005930", Money.krw(69741.66667), 9)

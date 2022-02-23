@@ -1,7 +1,7 @@
 package com.easywritten.allowancechart.domain.account
 
 import boopickle.Pickler
-import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, TickerSymbol, TransactionCost}
+import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, Ticker, TransactionCost}
 import zio._
 import zio.entity.core.{Combinators, Fold}
 import zio.entity.data.Tagging.Const
@@ -20,7 +20,7 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
 
   override def balance: IO[AccountCommandReject, MoneyBag] = ensureFullState map (_.balance)
 
-  override def holdings: IO[AccountCommandReject, Map[TickerSymbol, Holding]] = ensureFullState map (_.holdings)
+  override def holdings: IO[AccountCommandReject, Map[Ticker, Holding]] = ensureFullState map (_.holdings)
 
   override def netValue: IO[AccountCommandReject, MoneyBag] = ensureFullState map (_.netValue)
 
@@ -35,7 +35,7 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
   }
 
   override def buy(
-      symbol: TickerSymbol,
+      symbol: Ticker,
       averagePrice: Money,
       quantity: Int,
       contractedAt: Instant
@@ -47,7 +47,7 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
     }
 
   override def sell(
-      symbol: TickerSymbol,
+      symbol: Ticker,
       contractPrice: Money,
       quantity: Int,
       contractedAt: Instant
