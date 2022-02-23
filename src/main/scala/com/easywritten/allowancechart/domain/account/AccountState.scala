@@ -29,7 +29,7 @@ final case class FullAccountState(
     holdings(symbol).quantity
 
   def netValue: MoneyBag = holdings.foldLeft(balance) { case (acc, (_, holding)) =>
-    acc + holding.averagePrice * holding.quantity
+    acc + holding.unitPrice * holding.quantity
   }
 
   override def handleEvent(e: AccountEvent): Task[AccountState] = e match {
@@ -40,8 +40,8 @@ final case class FullAccountState(
       val nextHolding = holdings.get(symbol) match {
         case Some(h) =>
           val nextQuantity = h.quantity + quantity
-          val nextAveragePrice = ((h.averagePrice * h.quantity) unsafe_+ totalAmount) / nextQuantity
-          h.copy(quantity = nextQuantity, averagePrice = nextAveragePrice)
+          val nextAveragePrice = ((h.unitPrice * h.quantity) unsafe_+ totalAmount) / nextQuantity
+          h.copy(quantity = nextQuantity, unitPrice = nextAveragePrice)
         case None => Holding(symbol, averagePrice, quantity)
       }
       Task.succeed(

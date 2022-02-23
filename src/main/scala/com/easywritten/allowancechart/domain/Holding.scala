@@ -1,3 +1,3 @@
 package com.easywritten.allowancechart.domain
 
-final case class Holding(symbol: TickerSymbol, averagePrice: Money, quantity: Int)
+final case class Holding(symbol: TickerSymbol, unitPrice: Money, quantity: Int)

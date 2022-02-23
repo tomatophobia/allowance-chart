@@ -15,11 +15,11 @@ object Assertion {
     val keys = actual.keys ++ expected.keys
     keys.foldLeft(assertCompletes) { (asserts, symbol) =>
       val h1 = actual.get(symbol)
-      val m1 = h1.map(_.averagePrice.halfUp)
+      val m1 = h1.map(_.unitPrice.halfUp)
       val q1 = h1.map(_.quantity)
 
       val h2 = expected.get(symbol)
-      val m2 = h2.map(_.averagePrice.halfUp)
+      val m2 = h2.map(_.unitPrice.halfUp)
       val q2 = h2.map(_.quantity)
 
       asserts && assert(m1)(equalTo(m2)) && assert(q1)(equalTo(q2))
