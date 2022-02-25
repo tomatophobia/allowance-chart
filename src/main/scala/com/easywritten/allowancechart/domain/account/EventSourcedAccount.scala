@@ -1,7 +1,7 @@
 package com.easywritten.allowancechart.domain.account
 
 import boopickle.Pickler
-import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, TickerSymbol, TransactionCost}
+import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, Stock, Ticker, TransactionCost}
 import zio._
 import zio.entity.core.{Combinators, Fold}
 import zio.entity.data.Tagging.Const
@@ -20,7 +20,7 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
 
   override def balance: IO[AccountCommandReject, MoneyBag] = ensureFullState map (_.balance)
 
-  override def holdings: IO[AccountCommandReject, Map[TickerSymbol, Holding]] = ensureFullState map (_.holdings)
+  override def holdings: IO[AccountCommandReject, Set[Holding]] = ensureFullState map (_.holdings)
 
   override def netValue: IO[AccountCommandReject, MoneyBag] = ensureFullState map (_.netValue)
 
@@ -35,26 +35,26 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
   }
 
   override def buy(
-      symbol: TickerSymbol,
+      stock: Stock,
       averagePrice: Money,
       quantity: Int,
       contractedAt: Instant
   ): IO[AccountCommandReject, Unit] =
     ensureFullState flatMap { state =>
       if (state.balance.canAfford(MoneyBag.fromMoneys(averagePrice * quantity)))
-        append(AccountEvent.Buy(symbol, averagePrice, quantity, contractedAt))
+        append(AccountEvent.Buy(stock, averagePrice, quantity, contractedAt))
       else reject(AccountCommandReject.InsufficientBalance("Buying failed"))
     }
 
   override def sell(
-      symbol: TickerSymbol,
+      stock: Stock,
       contractPrice: Money,
       quantity: Int,
       contractedAt: Instant
   ): IO[AccountCommandReject, Unit] =
     ensureFullState flatMap { state =>
-      if (state.getQuantityBySymbol(symbol) >= quantity)
-        append(AccountEvent.Sell(symbol, contractPrice, quantity, contractedAt))
+      if (state.getQuantityByStock(stock) >= quantity)
+        append(AccountEvent.Sell(stock, contractPrice, quantity, contractedAt))
       else reject(AccountCommandReject.InsufficientShares("Selling failed"))
     }
 

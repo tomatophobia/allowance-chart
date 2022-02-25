@@ -1,6 +1,6 @@
 package com.easywritten.allowancechart.domain.account
 
-import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, TickerSymbol, TransactionCost}
+import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, Stock, Ticker, TransactionCost}
 import zio._
 import zio.entity.annotations.Id
 
@@ -14,7 +14,7 @@ trait Account {
   def balance: IO[AccountCommandReject, MoneyBag]
 
   @Id(3)
-  def holdings: IO[AccountCommandReject, Map[TickerSymbol, Holding]]
+  def holdings: IO[AccountCommandReject, Set[Holding]]
 
   @Id(4)
   def netValue: IO[AccountCommandReject, MoneyBag]
@@ -27,7 +27,7 @@ trait Account {
 
   @Id(7)
   def buy(
-      symbol: TickerSymbol,
+      stock: Stock,
       averagePrice: Money,
       quantity: Int,
       contractedAt: Instant
@@ -35,7 +35,7 @@ trait Account {
 
   @Id(8)
   def sell(
-      symbol: TickerSymbol,
+      stock: Stock,
       contractPrice: Money,
       quantity: Int,
       contractedAt: Instant

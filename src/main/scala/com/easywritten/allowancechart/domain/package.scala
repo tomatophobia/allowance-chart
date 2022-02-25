@@ -5,5 +5,5 @@ package object domain {
 
   val ZeroAmount: MoneyAmount = BigDecimal(0)
 
-  type TickerSymbol = String
+  type Ticker = String
 }
