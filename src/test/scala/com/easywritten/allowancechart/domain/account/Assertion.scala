@@ -29,8 +29,9 @@ object Assertion {
 
           acc && assert(m1)(equalTo(m2)) && assert(q1)(equalTo(q2))
         }
-      } else assertCompletes.negate
-    } else assertCompletes.negate
+      } else assert(actual)(equalTo(expected))
+    } else assert(actual)(equalTo(expected))
+    // 실패 케이스에서 `assert(actual)(equalTo(expected))`를 사용한 이유는 어치파 실패할테니 내부 상태라도 보라는 목적
   }
 
   /** MoneyBag 비교 시 반올림하여 비교

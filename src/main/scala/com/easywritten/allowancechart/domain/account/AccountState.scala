@@ -34,8 +34,10 @@ final case class FullAccountState(
   }
 
   override def handleEvent(e: AccountEvent): Task[AccountState] = e match {
-    case AccountEvent.Deposit(money)    => Task.succeed(copy(balance = balance + money))
+    case AccountEvent.Deposit(money) => Task.succeed(copy(balance = balance + money))
+
     case AccountEvent.Withdrawal(money) => Task.succeed(copy(balance = balance - money))
+
     case AccountEvent.Buy(stock, averagePrice, quantity, _) =>
       val totalAmount = averagePrice * quantity
       val nextHoldings = holdings.find(_.stock === stock) match {
@@ -45,7 +47,7 @@ final case class FullAccountState(
           val nextHolding = h.copy(unitPrice = nextAveragePrice, quantity = nextQuantity)
           holdings map {
             case h if h.stock === stock => nextHolding
-            case h => h
+            case h                      => h
           }
 
         case None =>
@@ -59,20 +61,32 @@ final case class FullAccountState(
           holdings = nextHoldings
         )
       )
+
     case AccountEvent.Sell(stock, contractPrice, quantity, _) =>
       val totalAmount = contractPrice * quantity
-      for {
-        nextHolding <- holdings.find(_.stock === stock) match {
-          case Some(h) => Task.succeed(h.copy(quantity = h.quantity - quantity))
-          case _       => impossible
-        }
-      } yield copy(
-        balance = balance + totalAmount - totalAmount * cost.sell,
-        holdings = holdings map {
-          case h if h.stock === stock => nextHolding
-          case h => h
-        }
-      )
+      val maybeNextHolding = holdings.find(_.stock === stock).map(h => h.copy(quantity = h.quantity - quantity))
+
+      maybeNextHolding match {
+        case Some(nextHolding) if nextHolding.quantity > 0 =>
+          Task.succeed(
+            copy(
+              balance = balance + totalAmount - totalAmount * cost.sell,
+              holdings = holdings collect {
+                case h if h.stock === stock => nextHolding
+                case h                      => h
+              }
+            )
+          )
+        case Some(nextHolding) if nextHolding.quantity === 0 =>
+          Task.succeed(
+            copy(
+              balance = balance + totalAmount - totalAmount * cost.sell,
+              holdings = holdings.filter(_.stock =!= stock)
+            )
+          )
+        case _ => impossible
+      }
+
     case _ => impossible
   }
 }

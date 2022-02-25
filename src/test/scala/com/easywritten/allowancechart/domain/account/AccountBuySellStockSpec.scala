@@ -1,16 +1,7 @@
 package com.easywritten.allowancechart.domain.account
 
 import Assertion._
-import com.easywritten.allowancechart.domain.{
-  Currency,
-  Holding,
-  Money,
-  MoneyBag,
-  Nation,
-  Stock,
-  Ticker,
-  TransactionCost
-}
+import com.easywritten.allowancechart.domain.{Currency, Holding, Money, MoneyBag, Nation, Stock, TransactionCost}
 import zio._
 import zio.clock.Clock
 import zio.entity.test.TestEntityRuntime._
