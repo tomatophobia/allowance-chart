@@ -8,6 +8,10 @@ import zio.test._
 import zio.test.Assertion._
 
 object AssetSpec extends DefaultRunnableSpec {
+
+  val apple: Stock = Stock("AAPL", Nation.USA)
+  val samsung: Stock = Stock("005930", Nation.KOR)
+
   override def spec: ZSpec[Environment, Failure] = suite("AssetSpec")(
     testM("Asset can be changed by adding transaction information") {
       val accountName1 = AccountName("대신증권")
@@ -15,15 +19,15 @@ object AssetSpec extends DefaultRunnableSpec {
 
       val expectedBalance1: MoneyBag =
         MoneyBag(Map(Currency.USD -> Money.usd(55.46)))
-      val expectedHoldings1: Map[Ticker, Holding] =
-        Map("AAPL" -> Holding("AAPL", Money.usd(32.23), 1))
+      val expectedHoldings1: Set[Holding] =
+        Set(Holding(apple, Money.usd(32.23), 1))
       val expectedNetValue1: MoneyBag =
         MoneyBag(Map(Currency.USD -> Money.usd(87.69)))
 
       val expectedBalance2: MoneyBag =
         MoneyBag(Map(Currency.KRW -> Money.krw(96261)))
-      val expectedHoldings2: Map[Ticker, Holding] =
-        Map("005930" -> Holding("005930", Money.krw(78240), 2))
+      val expectedHoldings2: Set[Holding] =
+        Set(Holding(samsung, Money.krw(78240), 2))
       val expectedNetValue2: MoneyBag =
         MoneyBag(Map(Currency.KRW -> Money.krw(252741)))
 
@@ -36,16 +40,16 @@ object AssetSpec extends DefaultRunnableSpec {
         _ <- acc2.initialize(TransactionCost.zero)
 
         _ <- acc1.deposit(Money.usd(123.45))
-        _ <- acc1.buy("AAPL", Money.usd(32.23), 2, now)
-        _ <- acc1.sell("AAPL", Money.usd(47.79), 1, now)
+        _ <- acc1.buy(apple, Money.usd(32.23), 2, now)
+        _ <- acc1.sell(apple, Money.usd(47.79), 1, now)
         _ <- acc1.withdraw(Money.usd(51.32))
         balance1 <- acc1.balance
         holdings1 <- acc1.holdings
         netValue1 <- acc1.netValue
 
         _ <- acc2.deposit(Money.krw(300000))
-        _ <- acc2.buy("005930", Money.krw(78240), 3, now)
-        _ <- acc2.sell("005930", Money.krw(65490), 1, now)
+        _ <- acc2.buy(samsung, Money.krw(78240), 3, now)
+        _ <- acc2.sell(samsung, Money.krw(65490), 1, now)
         _ <- acc2.withdraw(Money.krw(34509))
         balance2 <- acc2.balance
         holdings2 <- acc2.holdings

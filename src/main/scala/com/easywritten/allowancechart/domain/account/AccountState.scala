@@ -1,6 +1,7 @@
 package com.easywritten.allowancechart.domain.account
 
-import com.easywritten.allowancechart.domain.{Holding, MoneyBag, Ticker, TransactionCost}
+import cats.implicits._
+import com.easywritten.allowancechart.domain.{Holding, MoneyBag, Stock, Ticker, TransactionCost}
 import zio.entity.core.Fold.impossible
 import zio._
 
@@ -15,51 +16,62 @@ object AccountState {
 case object PartialAccountState extends AccountState {
   override def handleEvent(e: AccountEvent): Task[AccountState] = e match {
     case AccountEvent.Initialize(cost) =>
-      Task.succeed(FullAccountState(balance = MoneyBag.empty, holdings = Map(), cost = cost))
+      Task.succeed(FullAccountState(balance = MoneyBag.empty, holdings = Set(), cost = cost))
     case _ => impossible
   }
 }
 
 final case class FullAccountState(
     balance: MoneyBag,
-    holdings: Map[Ticker, Holding],
+    holdings: Set[Holding],
     cost: TransactionCost
 ) extends AccountState {
-  def getQuantityBySymbol(symbol: Ticker): Int =
-    holdings(symbol).quantity
+  def getQuantityByStock(stock: Stock): Int =
+    holdings.find(_.stock === stock).map(_.quantity).getOrElse(0)
 
-  def netValue: MoneyBag = holdings.foldLeft(balance) { case (acc, (_, holding)) =>
+  def netValue: MoneyBag = holdings.foldLeft(balance) { case (acc, holding) =>
     acc + holding.unitPrice * holding.quantity
   }
 
   override def handleEvent(e: AccountEvent): Task[AccountState] = e match {
     case AccountEvent.Deposit(money)    => Task.succeed(copy(balance = balance + money))
     case AccountEvent.Withdrawal(money) => Task.succeed(copy(balance = balance - money))
-    case AccountEvent.Buy(symbol, averagePrice, quantity, _) =>
+    case AccountEvent.Buy(stock, averagePrice, quantity, _) =>
       val totalAmount = averagePrice * quantity
-      val nextHolding = holdings.get(symbol) match {
+      val nextHoldings = holdings.find(_.stock === stock) match {
         case Some(h) =>
           val nextQuantity = h.quantity + quantity
           val nextAveragePrice = ((h.unitPrice * h.quantity) unsafe_+ totalAmount) / nextQuantity
-          h.copy(quantity = nextQuantity, unitPrice = nextAveragePrice)
-        case None => Holding(symbol, averagePrice, quantity)
+          val nextHolding = h.copy(unitPrice = nextAveragePrice, quantity = nextQuantity)
+          holdings map {
+            case h if h.stock === stock => nextHolding
+            case h => h
+          }
+
+        case None =>
+          val nextHolding = Holding(stock, averagePrice, quantity)
+          holdings + nextHolding
       }
+
       Task.succeed(
         copy(
           balance = balance - totalAmount - totalAmount * cost.buy,
-          holdings = holdings.updated(symbol, nextHolding)
+          holdings = nextHoldings
         )
       )
-    case AccountEvent.Sell(symbol, contractPrice, quantity, _) =>
+    case AccountEvent.Sell(stock, contractPrice, quantity, _) =>
       val totalAmount = contractPrice * quantity
       for {
-        nextHolding <- holdings.get(symbol) match {
+        nextHolding <- holdings.find(_.stock === stock) match {
           case Some(h) => Task.succeed(h.copy(quantity = h.quantity - quantity))
           case _       => impossible
         }
       } yield copy(
         balance = balance + totalAmount - totalAmount * cost.sell,
-        holdings = holdings.updated(symbol, nextHolding)
+        holdings = holdings map {
+          case h if h.stock === stock => nextHolding
+          case h => h
+        }
       )
     case _ => impossible
   }

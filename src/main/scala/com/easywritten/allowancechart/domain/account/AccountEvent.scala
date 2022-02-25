@@ -1,6 +1,6 @@
 package com.easywritten.allowancechart.domain.account
 
-import com.easywritten.allowancechart.domain.{Money, Ticker, TransactionCost}
+import com.easywritten.allowancechart.domain.{Money, Stock, Ticker, TransactionCost}
 
 import java.time.Instant
 
@@ -14,7 +14,7 @@ object AccountEvent {
 
   final case class Withdrawal(money: Money) extends AccountEvent
 
-  final case class Buy(symbol: Ticker, averagePrice: Money, quantity: Int, contractedAt: Instant) extends AccountEvent
+  final case class Buy(stock: Stock, averagePrice: Money, quantity: Int, contractedAt: Instant) extends AccountEvent
 
-  final case class Sell(symbol: Ticker, contractPrice: Money, quantity: Int, contractedAt: Instant) extends AccountEvent
+  final case class Sell(stock: Stock, contractPrice: Money, quantity: Int, contractedAt: Instant) extends AccountEvent
 }
