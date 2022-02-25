@@ -1,5 +1,6 @@
 package com.easywritten.allowancechart.domain.account
 
+import com.easywritten.allowancechart.domain.account.Assertion.compareMoneyBag
 import com.easywritten.allowancechart.domain.{Currency, Money, MoneyBag, TransactionCost}
 import zio.entity.test.TestEntityRuntime._
 import zio.test._
@@ -37,8 +38,8 @@ object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
           assert(events)(
             equalTo(AccountEvent.Initialize(TransactionCost.zero) :: moneys.map[AccountEvent](AccountEvent.Deposit))
           ) &&
-          assert(balance)(equalTo(expectedBalance)) &&
-          assert(netValue)(equalTo(expectedBalance))
+          compareMoneyBag(balance, expectedBalance) &&
+          compareMoneyBag(netValue, expectedBalance)
         }
       },
       testM("Withdraw money from account several times") {
@@ -67,8 +68,8 @@ object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
           balance <- account.balance
           netValue <- account.netValue
         } yield {
-          assert(balance)(equalTo(expectedBalance)) &&
-          assert(netValue)(equalTo(expectedBalance))
+          compareMoneyBag(balance, expectedBalance) &&
+          compareMoneyBag(netValue, expectedBalance)
         }
       },
       testM("Cannot withdraw money when there is not enough balance") {

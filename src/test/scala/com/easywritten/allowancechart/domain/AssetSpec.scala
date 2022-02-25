@@ -54,10 +54,10 @@ object AssetSpec extends DefaultRunnableSpec {
         balance2 <- acc2.balance
         holdings2 <- acc2.holdings
         netValue2 <- acc2.netValue
-      } yield assert(balance1)(equalTo(expectedBalance1)) &&
+      } yield compareMoneyBag(balance1, expectedBalance1) &&
         compareHoldings(holdings1, expectedHoldings1) &&
         compareMoneyBag(netValue1, expectedNetValue1) &&
-        assert(balance2)(equalTo(expectedBalance2)) &&
+        compareMoneyBag(balance2, expectedBalance2) &&
         compareHoldings(holdings2, expectedHoldings2) &&
         compareMoneyBag(netValue2, expectedNetValue2)
     }

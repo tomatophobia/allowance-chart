@@ -57,7 +57,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
             holdings <- account.holdings
             netValue <- account.netValue
           } yield {
-            assert(balance)(equalTo(expectedBalance)) &&
+            compareMoneyBag(balance, expectedBalance) &&
             compareHoldings(holdings, expectedHoldings) &&
             compareMoneyBag(netValue, expectedNetValue)
           }
@@ -115,7 +115,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
             holdings <- account.holdings
             netValue <- account.netValue
           } yield {
-            assert(balance)(equalTo(expectedBalance)) &&
+            compareMoneyBag(balance, expectedBalance) &&
             compareHoldings(holdings, expectedHoldings) &&
             compareMoneyBag(netValue, expectedNetValue)
           }
