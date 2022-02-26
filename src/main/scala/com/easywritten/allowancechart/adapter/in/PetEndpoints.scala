@@ -2,17 +2,11 @@ package com.easywritten.allowancechart.adapter.in
 
 import cats.syntax.all._
 import io.circe.generic.auto._
-import org.http4s._
-import org.http4s.server.Router
-import org.http4s.ember.server.EmberServerBuilder
-import org.http4s.implicits._
+import sttp.tapir.Endpoint
+import sttp.tapir.EndpointIO.Header
 import sttp.tapir.json.circe._
 import sttp.tapir.generic.auto._
-import sttp.tapir.server.http4s.ztapir.ZHttp4sServerInterpreter
-import sttp.tapir.swagger.http4s.SwaggerHttp4s
 import sttp.tapir.ztapir._
-import zio.clock.Clock
-import zio.interop.catz._
 import zio._
 
 object PetEndpoints {
@@ -31,9 +25,19 @@ object PetEndpoints {
         }
       }
 
+  val htmlExampleEndpoint: ZServerEndpoint[Env, Int, String, String] =
+    endpoint
+      .in("example" / path[Int]("hello"))
+      .errorOut(stringBody)
+      .out(htmlBodyUtf8)
+      .zServerLogic { x =>
+        UIO.succeed(ExamplePage())
+      }
+
   val all: List[ZServerEndpoint[Env, _, _, _]] =
     List(
-      petEndpoint
+      petEndpoint,
+      htmlExampleEndpoint
     )
 
   type Env = Any
