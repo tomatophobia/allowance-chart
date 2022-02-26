@@ -16,7 +16,8 @@ lazy val root = (project in file("."))
       "io.github.thehonesttech" %% "zio-entity-core" % "0.0.26",
       "io.github.thehonesttech" %% "zio-entity-akkaruntime" % "0.0.26",
       "io.github.thehonesttech" %% "zio-entity-postgres" % "0.0.26",
-      "io.suzaku" %% "boopickle" % "1.4.0"
+      "io.suzaku" %% "boopickle" % "1.4.0",
+      "com.lihaoyi" %% "scalatags" % "0.11.1"
     ),
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
     wartremoverErrors ++= Warts.allBut(
