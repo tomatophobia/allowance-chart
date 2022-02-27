@@ -1,7 +1,7 @@
 package com.easywritten
 
 import cats.syntax.all._
-import com.easywritten.allowancechart.adapter.in.PetEndpoints
+import com.easywritten.allowancechart.adapter.in.TransactionHistoryEndpoints
 import io.circe.generic.auto._
 import org.http4s._
 import org.http4s.server.Router
@@ -18,13 +18,16 @@ import zio._
 
 object App extends zio.App {
 
-  val serverRoutes: HttpRoutes[RIO[Clock, *]] = ZHttp4sServerInterpreter().from(PetEndpoints.all).toRoutes
+  val serverRoutes: HttpRoutes[RIO[Clock, *]] =
+    ZHttp4sServerInterpreter().from(TransactionHistoryEndpoints.all).toRoutes
 
   // API documents
   val apiDocs: String = {
     import sttp.tapir.docs.openapi.OpenAPIDocsInterpreter
     import sttp.tapir.openapi.circe.yaml._
-    OpenAPIDocsInterpreter().serverEndpointsToOpenAPI(PetEndpoints.all, "Our pets", "1.0").toYaml
+    OpenAPIDocsInterpreter()
+      .serverEndpointsToOpenAPI(TransactionHistoryEndpoints.all, "Allowance Chart", "0.0.0")
+      .toYaml
   }
 
   val serve: RIO[ZEnv, Unit] =

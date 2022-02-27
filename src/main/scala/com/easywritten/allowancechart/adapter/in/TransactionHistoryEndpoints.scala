@@ -1,15 +1,24 @@
 package com.easywritten.allowancechart.adapter.in
 
 import cats.syntax.all._
+import com.easywritten.allowancechart.adapter.in.page.RegisterTransactionHistory
 import io.circe.generic.auto._
-import sttp.tapir.Endpoint
-import sttp.tapir.EndpointIO.Header
 import sttp.tapir.json.circe._
 import sttp.tapir.generic.auto._
 import sttp.tapir.ztapir._
 import zio._
 
-object PetEndpoints {
+object TransactionHistoryEndpoints {
+
+  val registerPage: ZServerEndpoint[Env, Unit, String, String] =
+    endpoint
+      .in("transaction-history" / "register")
+      .errorOut(stringBody)
+      .out(htmlBodyUtf8)
+      .zServerLogic { _ =>
+        UIO.succeed(RegisterTransactionHistory())
+      }
+
   final case class Pet(species: String, url: String)
 
   val petEndpoint: ZServerEndpoint[Env, Int, String, Pet] =
@@ -31,13 +40,12 @@ object PetEndpoints {
       .errorOut(stringBody)
       .out(htmlBodyUtf8)
       .zServerLogic { x =>
-        UIO.succeed(ExamplePage())
+        UIO.succeed(RegisterTransactionHistory())
       }
 
   val all: List[ZServerEndpoint[Env, _, _, _]] =
     List(
-      petEndpoint,
-      htmlExampleEndpoint
+      registerPage
     )
 
   type Env = Any
