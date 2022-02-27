@@ -1,20 +1,19 @@
 package com.easywritten
 
+import cats.effect.Blocker
 import cats.syntax.all._
 import com.easywritten.allowancechart.adapter.in.TransactionHistoryEndpoints
-import io.circe.generic.auto._
 import org.http4s._
 import org.http4s.server.Router
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits._
-import sttp.tapir.json.circe._
-import sttp.tapir.generic.auto._
+import org.http4s.server.staticcontent.{resourceServiceBuilder, webjarServiceBuilder}
 import sttp.tapir.server.http4s.ztapir.ZHttp4sServerInterpreter
 import sttp.tapir.swagger.http4s.SwaggerHttp4s
-import sttp.tapir.ztapir._
 import zio.clock.Clock
 import zio.interop.catz._
 import zio._
+import zio.blocking.Blocking
 
 object App extends zio.App {
 
@@ -30,20 +29,32 @@ object App extends zio.App {
       .toYaml
   }
 
-  val serve: RIO[ZEnv, Unit] =
-    ZIO
-      .runtime[ZEnv]
-      .toManaged_
-      .flatMap { implicit runtime =>
-        EmberServerBuilder
-          .default[RIO[Clock, *]]
-          .withHost("localhost")
-          .withPort(8080)
-          .withHttpApp(Router("/" -> (serverRoutes <+> new SwaggerHttp4s(apiDocs).routes)).orNotFound)
-          .build
-          .toManagedZIO
-      }
-      .use(_ => ZIO.never)
+  val program: RIO[ZEnv, Unit] =
+    (for {
+      executor <- ZManaged.fromEffect(RIO.access[Blocking](_.get.blockingExecutor))
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = serve.exitCode
+      catsBlocker = Blocker.liftExecutionContext(executor.asEC)
+
+      serve <- ZIO
+        .runtime[ZEnv]
+        .toManaged_
+        .flatMap { implicit runtime =>
+          EmberServerBuilder
+            .default[RIO[Clock, *]]
+            .withHost("localhost")
+            .withPort(8080)
+            .withHttpApp(
+              Router(
+                "/assets/webjars" -> webjarServiceBuilder[RIO[Clock, *]](catsBlocker).toRoutes,
+                "/assets" -> resourceServiceBuilder[RIO[Clock, *]]("/assets", catsBlocker).toRoutes,
+                "/" -> (serverRoutes <+> new SwaggerHttp4s(apiDocs).routes)
+              ).orNotFound
+            )
+            .build
+            .toManagedZIO
+        }
+
+    } yield serve).use(_ => ZIO.never)
+
+  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = program.exitCode
 }

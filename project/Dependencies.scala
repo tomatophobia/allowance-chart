@@ -50,7 +50,7 @@ object Dependencies {
 
   object webjars {
     val adminLTE = "org.webjars" % "AdminLTE" % "3.2.0"
-    val plotly = "org.webjars.npm" % "plotly.js-dist-min" % "2.7.0" // 시간지나면 2.9.0 확인
+    val plotly = "org.webjars.npm" % "plotly.js-dist-min" % "2.9.0"
     val all: Seq[ModuleID] = Seq(adminLTE, plotly)
   }
 
