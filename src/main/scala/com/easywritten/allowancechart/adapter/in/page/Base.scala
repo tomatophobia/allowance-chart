@@ -5,10 +5,35 @@ import scalatags.Text._
 import scalatags.Text.all._
 
 trait Base {
-  def layout(pageTitle: String)(content: Frag): TypedTag[String] =
+  def layout(pageTitle: String)(pageContent: Frag): TypedTag[String] =
     html(
-      head(commonHeaders(pageTitle)),
-      body(cls := "sidebar-mini", style := "height: auto;")(
+      head(
+        meta(charset := "utf-8"),
+        meta(name := "viewport", content := "width=device-width, initial-scale=1"),
+        tags2.title(pageTitle),
+        link(
+          rel := "stylesheet",
+          href := "https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback"
+        ),
+        link(
+          rel := "stylesheet",
+          href := adminLTE("plugins/fontawesome-free/css/all.min.css")
+        ),
+        link(
+          rel := "stylesheet",
+          href := adminLTE("dist/css/adminlte.min.css")
+        ),
+        link(
+          rel := "stylesheet",
+          href := adminLTE("plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css")
+        ),
+        link(
+          rel := "stylesheet",
+          href := adminLTE("plugins/toastr/toastr.min.css")
+        ),
+        tags2.style(".fas { line-height: inherit; }")
+      ),
+      body(cls := "hold-transition sidebar-mini")(
         div(cls := "wrapper")(
           tags2.nav(cls := "main-header navbar navbar-expand navbar-white navbar-light")(
             ul(cls := "navbar-nav")(
@@ -21,7 +46,7 @@ trait Base {
                 a(href := "index3.html", cls := "nav-link")("Home")
               ),
               li(cls := "nav-item d-none d-sm-inline-block")(
-                a(href := "#", cls := "nav-link")("Contract")
+                a(href := "#", cls := "nav-link")("Contact")
               )
             ),
             ul(cls := "navbar-nav ml-auto")(
@@ -119,7 +144,7 @@ trait Base {
               )
             ),
             div(cls := "content")(
-              div(cls := "container-fluid")(content)
+              div(cls := "container-fluid")(pageContent)
             )
           ),
           tags2.aside(cls := "control-sidebar control-sidebar-dark", style := "display: none;")(
@@ -141,33 +166,6 @@ trait Base {
         script(src := adminLTE("plugins/toastr/toastr.min.js")),
         script(src := plotly)
       )
-    )
-
-  def commonHeaders(pageTitle: String): List[TypedTag[String]] =
-    List(
-      meta(charset := "utf-8"),
-      meta(name := "viewport", content := "width=device-width, initial-scale=1"),
-      tags2.title(pageTitle),
-      link(
-        rel := "stylesheet",
-        href := "https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,400,400i,700"
-      ),
-      link(
-        rel := "stylesheet",
-        href := adminLTE("plugins/fontawesome-free/css/all.min.css")
-      ),
-      link(
-        rel := "stylesheet",
-        href := adminLTE("dist/css/adminlte.min.css")
-      ),
-      link(
-        rel := "stylesheet",
-        href := adminLTE("plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css")
-      ),
-      link(
-        rel := "stylesheet",
-        href := adminLTE("plugins/toastr/toastr.min.css")
-      ),
     )
 
   private val webjars: Uri = Uri.unsafeFromString("/assets/webjars")
