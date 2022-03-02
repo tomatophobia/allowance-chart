@@ -92,7 +92,7 @@ trait Base {
             a(href := "index3.html", cls := "brand-link")(
               img(
                 src := "/assets/images/scala-logo.png",
-                alt := "AdminLTE Logo",
+                alt := "Scala Logo",
                 cls := "brand-image img-circle elevation-3",
                 style := "opacity: .8"
               ),
@@ -154,9 +154,9 @@ trait Base {
             )
           ),
           footer(cls := "main-footer")(
-            div(cls := "float-right d-none d-sm-inline")("Anything you want"),
-            strong("Copyright © 2014-2021", a(href := "https://adminlte.io")("AdminLTE.io"), "."),
-            "All rights reserved."
+            div(cls := "float-right d-none d-sm-inline")(a(href:="https://github.com/tomatophobia/allowance-chart")("Github")),
+            strong("문의 사항은 ", a(href := "mailto:ys550499@gmail.com")("이메일로")),
+            " 주시면 감사드리겠습니다!"
           )
         ),
         script(src := adminLTE("plugins/jquery/jquery.min.js")),
