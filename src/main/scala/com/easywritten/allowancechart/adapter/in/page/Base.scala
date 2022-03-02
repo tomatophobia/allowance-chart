@@ -1,11 +1,13 @@
 package com.easywritten.allowancechart.adapter.in.page
 
+import cats.implicits._
 import org.http4s.Uri
 import scalatags.Text._
 import scalatags.Text.all._
 
 trait Base {
-  def layout(pageTitle: String)(pageContent: Frag): TypedTag[String] =
+  // pageContent 입력 가독성을 높이기 위해서 currying
+  def layout(pageTitle: String, menu: Menu)(pageContent: Frag): TypedTag[String] =
     html(
       head(
         meta(charset := "utf-8"),
@@ -43,10 +45,7 @@ trait Base {
                 )
               ),
               li(cls := "nav-item d-none d-sm-inline-block")(
-                a(href := "index3.html", cls := "nav-link")("Home")
-              ),
-              li(cls := "nav-item d-none d-sm-inline-block")(
-                a(href := "#", cls := "nav-link")("Contact")
+                a(href := "/home", cls := "nav-link")("Home")
               )
             ),
             ul(cls := "navbar-nav ml-auto")(
@@ -118,8 +117,7 @@ trait Base {
                     a(href := "#", cls := "nav-link")(
                       i(cls := "nav-icon fas fa-th"),
                       p(
-                        "Simple Link",
-                        span(cls := "right badge badge-danger")("New")
+                        "거래내역 등록"
                       )
                     )
                   )
@@ -132,12 +130,12 @@ trait Base {
               div(cls := "container-fluid")(
                 div(cls := "row mb-2")(
                   div(cls := "col-sm-6")(
-                    h1(cls := "m-0")("Starter Page")
+                    h1(cls := "m-0")(pageTitle)
                   ),
                   div(cls := "col-sm-6")(
                     ol(cls := "breadcrumb float-sm-right")(
                       li(cls := "breadcrumb-item")(a(href := "#")("Home")),
-                      li(cls := "breadcrumb-item active")("Starter Page")
+                      li(cls := "breadcrumb-item active")(pageTitle)
                     )
                   )
                 )
@@ -154,7 +152,9 @@ trait Base {
             )
           ),
           footer(cls := "main-footer")(
-            div(cls := "float-right d-none d-sm-inline")(a(href:="https://github.com/tomatophobia/allowance-chart")("Github")),
+            div(cls := "float-right d-none d-sm-inline")(
+              a(href := "https://github.com/tomatophobia/allowance-chart")("Github")
+            ),
             strong("문의 사항은 ", a(href := "mailto:ys550499@gmail.com")("이메일로")),
             " 주시면 감사드리겠습니다!"
           )
@@ -167,6 +167,20 @@ trait Base {
         script(src := plotly)
       )
     )
+
+  private def sidemenu(current: Menu): Seq[TypedTag[String]] = {
+    Menu.values map { menu =>
+      val active = if (menu === current) "active" else ""
+      li(cls := "nav-item")(
+        a(href := menu.link, cls := s"nav-link $active")(
+          i(cls := "nav-icon fas fa-th"),
+          p(
+            menu.name
+          )
+        )
+      )
+    }
+  }
 
   private val webjars: Uri = Uri.unsafeFromString("/assets/webjars")
   def adminLTE(dir: String): Uri = (webjars / "AdminLTE" / "3.2.0" / ".").resolve(Uri.unsafeFromString(dir))
