@@ -6,5 +6,5 @@ import scalatags.Text.all._
 object RegisterTransactionHistory extends Base {
   def apply(): String = frag.toString
 
-  val frag: TypedTag[String] = layout("거래내역 등록", Menu.RegisterTransactionHistory)()
+  val frag: TypedTag[String] = layout("거래내역 등록", Menu.ManageTransactionHistory)()
 }

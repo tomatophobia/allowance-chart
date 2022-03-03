@@ -7,7 +7,7 @@ import scalatags.Text.all._
 
 trait Base {
   // pageContent 입력 가독성을 높이기 위해서 currying
-  def layout(pageTitle: String, menu: Menu)(pageContent: Frag): TypedTag[String] =
+  def layout(pageTitle: String, currentMenu: Menu)(pageContent: Frag): TypedTag[String] =
     html(
       head(
         meta(charset := "utf-8"),
@@ -113,14 +113,7 @@ trait Base {
                   role := "menu",
                   data.accordion := "false"
                 )(
-                  li(cls := "nav-item")(
-                    a(href := "#", cls := "nav-link")(
-                      i(cls := "nav-icon fas fa-th"),
-                      p(
-                        "거래내역 등록"
-                      )
-                    )
-                  )
+                  sideMenu(currentMenu),
                 )
               )
             )
@@ -135,7 +128,7 @@ trait Base {
                   div(cls := "col-sm-6")(
                     ol(cls := "breadcrumb float-sm-right")(
                       li(cls := "breadcrumb-item")(a(href := "#")("Home")),
-                      li(cls := "breadcrumb-item active")(pageTitle)
+                      li(cls := "breadcrumb-item active")(currentMenu.name)
                     )
                   )
                 )
@@ -168,7 +161,7 @@ trait Base {
       )
     )
 
-  private def sidemenu(current: Menu): Seq[TypedTag[String]] = {
+  private def sideMenu(current: Menu): Seq[TypedTag[String]] = {
     Menu.values map { menu =>
       val active = if (menu === current) "active" else ""
       li(cls := "nav-item")(
