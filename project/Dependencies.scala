@@ -18,7 +18,12 @@ object Dependencies {
       val all: Seq[ModuleID] = Seq(core, akkaruntime, postgres)
     }
 
-    val all: Seq[ModuleID] = Seq(zio, zioTest, testSbt, testMagnolia, testIntellij) ++ entity.all
+    object interop {
+      val cats = "dev.zio" %% "zio-interop-cats" % "2.4.1.0"
+      val all: Seq[ModuleID] = Seq(cats)
+    }
+
+    val all: Seq[ModuleID] = Seq(zio, zioTest, testSbt, testMagnolia, testIntellij) ++ entity.all ++ interop.all
   }
 
   object cats {
@@ -37,15 +42,34 @@ object Dependencies {
   }
 
   object tapir {
-    val core = "com.softwaremill.sttp.tapir" %% "tapir-core" % "0.18.3"
-    val jsonCirce = "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % "0.18.3"
-    val openapiDocs = "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % "0.18.3"
-    val openapiCirceYaml = "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % "0.18.3"
-    val http4sServer = "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % "0.18.3"
-    val swaggerUiHttp4s = "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-http4s" % "0.18.3"
-    val zioHttp4sServer = "com.softwaremill.sttp.tapir" %% "tapir-zio-http4s-server" % "0.18.3"
+    private val version = "0.18.3"
+    val core = "com.softwaremill.sttp.tapir" %% "tapir-core" % version
+    val jsonCirce = "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % version
+    val openapiDocs = "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % version
+    val openapiCirceYaml = "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % version
+    val http4sServer = "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % version
+    val swaggerUiHttp4s = "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-http4s" % version
+    val zioHttp4sServer = "com.softwaremill.sttp.tapir" %% "tapir-zio-http4s-server" % version
+    val sttpStubServer = "com.softwaremill.sttp.tapir" %% "tapir-sttp-stub-server" % version
     val all: Seq[ModuleID] =
-      Seq(core, jsonCirce, openapiDocs, openapiCirceYaml, http4sServer, swaggerUiHttp4s, zioHttp4sServer)
+      Seq(
+        core,
+        jsonCirce,
+        openapiDocs,
+        openapiCirceYaml,
+        http4sServer,
+        swaggerUiHttp4s,
+        zioHttp4sServer,
+        sttpStubServer
+      )
+  }
+
+  object sttp {
+    private val version = "3.5.0"
+    val core = "com.softwaremill.sttp.client3" %% "core" % version
+    // Java 11 HttpClient 또는 async-http-client로 교체 가능
+    val armeriaBackendZio = "com.softwaremill.sttp.client3" %% "armeria-backend-zio1" % version
+    val all: Seq[ModuleID] = Seq(core, armeriaBackendZio)
   }
 
   object webjars {

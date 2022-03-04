@@ -113,7 +113,7 @@ trait Base {
                   role := "menu",
                   data.accordion := "false"
                 )(
-                  sideMenu(currentMenu),
+                  sideMenu(currentMenu)
                 )
               )
             )

@@ -11,7 +11,7 @@ import zio._
 object TransactionHistoryEndpoints {
 
   val registerPage: ZServerEndpoint[Env, Unit, String, String] =
-    endpoint
+    endpoint.get
       .in("transaction-history" / "register")
       .errorOut(stringBody)
       .out(htmlBodyUtf8)
