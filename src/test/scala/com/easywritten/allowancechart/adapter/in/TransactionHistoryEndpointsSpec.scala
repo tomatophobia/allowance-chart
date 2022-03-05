@@ -1,6 +1,7 @@
 package com.easywritten.allowancechart.adapter.in
 
 import sttp.capabilities.WebSockets
+import sttp.capabilities.zio.ZioStreams
 import sttp.client3._
 import sttp.client3.impl.zio.RIOMonadAsyncError
 import sttp.client3.testing.SttpBackendStub
@@ -16,9 +17,9 @@ object TransactionHistoryEndpointsSpec extends DefaultRunnableSpec {
   override def spec: ZSpec[Environment, Failure] =
     suite("TransactionHistoryEndpointsSpec")(
       testM("register page returns status code 200 with html string") {
-        val zioBackendStub = SttpBackendStub[Task, WebSockets](new RIOMonadAsyncError[Env])
+        val zioBackendStub = SttpBackendStub[Task, WebSockets with ZioStreams](new RIOMonadAsyncError[Env])
         // RichSttpBackendStub이 정확히 어떤 기능을 더 추가해주는지는 모름
-        val backendStub = RichSttpBackendStub(zioBackendStub).whenRequestMatchesEndpointThenLogic(registerPage)
+        val backendStub = RichSttpBackendStub(zioBackendStub).whenRequestMatchesEndpointThenLogic(getRegisterPage)
         for {
           response <- basicRequest.get(uri"http://test.com/transaction-history/register").send(backendStub)
         } yield assert(response.code)(equalTo(Ok)) &&

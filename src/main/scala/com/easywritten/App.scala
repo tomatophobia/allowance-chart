@@ -42,7 +42,7 @@ object App extends zio.App {
           EmberServerBuilder
             .default[RIO[Clock, *]]
             .withHost("localhost")
-            .withPort(8080)
+            .withPort(59595)
             .withHttpApp(
               Router(
                 "/assets/webjars" -> webjarServiceBuilder[RIO[Clock, *]](catsBlocker).toRoutes,

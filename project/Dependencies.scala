@@ -67,9 +67,10 @@ object Dependencies {
   object sttp {
     private val version = "3.5.0"
     val core = "com.softwaremill.sttp.client3" %% "core" % version
-    // Java 11 HttpClient 또는 async-http-client로 교체 가능
+    val javaHttpClientBackendZio = "com.softwaremill.sttp.client3" %% "httpclient-backend-zio1" % version
+    val asyncHttpClientBackendZio = "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio1" % version
     val armeriaBackendZio = "com.softwaremill.sttp.client3" %% "armeria-backend-zio1" % version
-    val all: Seq[ModuleID] = Seq(core, armeriaBackendZio)
+    val all: Seq[ModuleID] = Seq(core, javaHttpClientBackendZio, asyncHttpClientBackendZio, armeriaBackendZio)
   }
 
   object webjars {
