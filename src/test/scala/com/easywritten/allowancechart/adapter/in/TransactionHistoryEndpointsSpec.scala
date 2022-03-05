@@ -15,14 +15,14 @@ object TransactionHistoryEndpointsSpec extends DefaultRunnableSpec {
 
   override def spec: ZSpec[Environment, Failure] =
     suite("TransactionHistoryEndpointsSpec")(
-      testM("register page response status code 200") {
-        val zioBackendStub = SttpBackendStub[Task, WebSockets](new RIOMonadAsyncError[Any])
+      testM("register page returns status code 200 with html string") {
+        val zioBackendStub = SttpBackendStub[Task, WebSockets](new RIOMonadAsyncError[Env])
         // RichSttpBackendStub이 정확히 어떤 기능을 더 추가해주는지는 모름
         val backendStub = RichSttpBackendStub(zioBackendStub).whenRequestMatchesEndpointThenLogic(registerPage)
-        val response = basicRequest.get(uri"http://test.com/transaction-history/register").send(backendStub)
-        response map { res =>
-          assert(res.code)(equalTo(Ok))
-        }
+        for {
+          response <- basicRequest.get(uri"http://test.com/transaction-history/register").send(backendStub)
+        } yield assert(response.code)(equalTo(Ok)) &&
+          assert(response.body)(isRight(isNonEmptyString))
       }
     )
 }

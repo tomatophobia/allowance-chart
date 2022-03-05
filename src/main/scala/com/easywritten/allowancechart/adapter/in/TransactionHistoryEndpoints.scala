@@ -10,13 +10,14 @@ import zio._
 
 object TransactionHistoryEndpoints {
 
+  // TODO Error를 스트링 대신 다른 것으로
   val registerPage: ZServerEndpoint[Env, Unit, String, String] =
     endpoint.get
       .in("transaction-history" / "register")
       .errorOut(stringBody)
       .out(htmlBodyUtf8)
       .zServerLogic { _ =>
-        UIO.succeed(RegisterTransactionHistory())
+        UIO.succeed(RegisterTransactionHistory.html)
       }
 
   final case class Pet(species: String, url: String)
@@ -40,7 +41,7 @@ object TransactionHistoryEndpoints {
       .errorOut(stringBody)
       .out(htmlBodyUtf8)
       .zServerLogic { x =>
-        UIO.succeed(RegisterTransactionHistory())
+        UIO.succeed(RegisterTransactionHistory.html)
       }
 
   val all: List[ZServerEndpoint[Env, _, _, _]] =

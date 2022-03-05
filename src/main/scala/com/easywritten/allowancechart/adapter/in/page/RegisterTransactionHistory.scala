@@ -4,7 +4,7 @@ import scalatags.Text._
 import scalatags.Text.all._
 
 object RegisterTransactionHistory extends Base {
-  def apply(): String = frag.toString
+  def html: String = frag.toString
 
   val frag: TypedTag[String] = layout("거래내역 등록", Menu.ManageTransactionHistory)(
     div(
