@@ -26,6 +26,7 @@ object TransactionHistoryEndpoints {
 
   final case class NameWithTransactionHistory(name: String, transactionHistory: Part[TapirFile])
 
+  @SuppressWarnings(Array("org.wartremover.warts.Serializable", "org.wartremover.warts.JavaSerializable"))
   val registerTransactionHistory: ZServerEndpoint[Env, NameWithTransactionHistory, String, Unit] =
     endpoint.post
       .in("transaction-history")
@@ -34,10 +35,6 @@ object TransactionHistoryEndpoints {
       .tag(ApiDocTag.transactionHistory)
       .summary("Register transaction history file")
       .zServerLogic { case NameWithTransactionHistory(name, transactionHistoryPart) =>
-        println(name)
-        println(transactionHistoryPart.name)
-        println(transactionHistoryPart.otherDispositionParams)
-        println(transactionHistoryPart.headers)
         UIO.unit
       }
 
