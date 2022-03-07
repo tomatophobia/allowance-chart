@@ -25,7 +25,7 @@ object TransactionHistoryEndpointsSpec extends DefaultRunnableSpec {
         // RichSttpBackendStub이 정확히 어떤 기능을 더 추가해주는지는 모름
         val backendStub = RichSttpBackendStub(zioBackendStub).whenRequestMatchesEndpointThenLogic(getRegisterPage)
         for {
-          response <- basicRequest.get(uri"http://test.com/transaction-history/register").send(backendStub)
+          response <- basicRequest.get(uri"http://test.com/transaction-history/register-page").send(backendStub)
         } yield assert(response.code)(equalTo(Ok)) &&
           assert(response.body)(isRight(isNonEmptyString))
       },
