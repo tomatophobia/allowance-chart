@@ -2,6 +2,7 @@ package com.easywritten.allowancechart.adapter.in
 
 import cats.syntax.all._
 import com.easywritten.allowancechart.adapter.in.page.RegisterTransactionHistory
+import com.easywritten.allowancechart.domain.account.AccountName
 import io.circe.generic.auto._
 import sttp.model.Part
 import sttp.tapir.{CodecFormat, Endpoint, Schema}
@@ -35,6 +36,7 @@ object TransactionHistoryEndpoints {
       .tag(ApiDocTag.transactionHistory)
       .summary("Register transaction history file")
       .zServerLogic { case NameWithTransactionHistory(name, transactionHistoryPart) =>
+        // TODO 거래 내역 파일 처리
         UIO.unit
       }
 

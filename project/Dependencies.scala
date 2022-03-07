@@ -42,13 +42,14 @@ object Dependencies {
   }
 
   object tapir {
+    private val oldVersion = "0.18.3"
     private val version = "0.18.3"
     val core = "com.softwaremill.sttp.tapir" %% "tapir-core" % version
     val jsonCirce = "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % version
     val openapiDocs = "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % version
     val openapiCirceYaml = "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % version
     val http4sServer = "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % version
-    val swaggerUiHttp4s = "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-http4s" % version
+    val swaggerUiHttp4s = "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-http4s" % oldVersion
     val zioHttp4sServer = "com.softwaremill.sttp.tapir" %% "tapir-zio-http4s-server" % version
     val sttpStubServer = "com.softwaremill.sttp.tapir" %% "tapir-sttp-stub-server" % version
     val all: Seq[ModuleID] =
