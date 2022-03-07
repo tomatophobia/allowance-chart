@@ -122,3 +122,5 @@ hs_err_pid*
 
 ### custom ###
 .idea
+.bloop
+.bsp
