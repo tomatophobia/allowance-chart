@@ -2,10 +2,11 @@ package com.easywritten.allowancechart.adapter.in
 
 import cats.syntax.all._
 import com.easywritten.allowancechart.adapter.in.page.RegisterTransactionHistory
+import com.easywritten.allowancechart.application.port.in.RegisterTransactionHistoryPort
+import com.easywritten.allowancechart.application.service.ServiceError
 import com.easywritten.allowancechart.domain.account.AccountName
 import io.circe.generic.auto._
 import sttp.model.Part
-import sttp.tapir.{CodecFormat, Endpoint, Schema}
 import sttp.tapir.json.circe._
 import sttp.tapir.generic.auto._
 import sttp.tapir.ztapir._
@@ -14,7 +15,7 @@ import zio._
 object TransactionHistoryEndpoints {
 
   // TODO Error를 스트링 대신 다른 것으로
-  val getRegisterPage: ZServerEndpoint[Env, Unit, String, String] =
+  val getRegisterPage: ZServerEndpoint[Any, Unit, ServiceError, String] =
     endpoint.get
       .in("transaction-history" / "register-page")
       .out(htmlBodyUtf8)
@@ -22,13 +23,13 @@ object TransactionHistoryEndpoints {
       .tag(ApiDocTag.transactionHistory)
       .summary("Transaction history register page")
       .zServerLogic { _ =>
-        UIO.succeed(RegisterTransactionHistory.html)
+        ZIO.succeed(RegisterTransactionHistory.html)
       }
 
   final case class NameWithTransactionHistory(name: String, transactionHistory: Part[TapirFile])
 
   @SuppressWarnings(Array("org.wartremover.warts.Serializable", "org.wartremover.warts.JavaSerializable"))
-  val registerTransactionHistory: ZServerEndpoint[Env, NameWithTransactionHistory, String, Unit] =
+  val registerTransactionHistory: ZServerEndpoint[Env, NameWithTransactionHistory, ServiceError, Unit] =
     endpoint.post
       .in("transaction-history")
       .in(multipartBody[NameWithTransactionHistory])
@@ -36,8 +37,7 @@ object TransactionHistoryEndpoints {
       .tag(ApiDocTag.transactionHistory)
       .summary("Register transaction history file")
       .zServerLogic { case NameWithTransactionHistory(name, transactionHistoryPart) =>
-        // TODO 거래 내역 파일 처리
-        UIO.unit
+        RegisterTransactionHistoryPort.registerTransactionHistory(AccountName(name), Nil)
       }
 
   final case class Pet(species: String, url: String)
@@ -61,6 +61,6 @@ object TransactionHistoryEndpoints {
       registerTransactionHistory
     )
 
-  type Env = Any
+  type Env = Has[RegisterTransactionHistoryPort]
 
 }
