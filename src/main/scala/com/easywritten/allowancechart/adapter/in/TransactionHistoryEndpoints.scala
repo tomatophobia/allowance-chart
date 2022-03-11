@@ -40,21 +40,6 @@ object TransactionHistoryEndpoints {
         RegisterTransactionHistoryPort.registerTransactionHistory(AccountName(name), Nil)
       }
 
-  final case class Pet(species: String, url: String)
-
-  val petEndpoint: ZServerEndpoint[Env, Int, String, Pet] =
-    endpoint.get
-      .in("pet" / path[Int]("petId"))
-      .errorOut(stringBody)
-      .out(jsonBody[Pet])
-      .zServerLogic { petId =>
-        if (petId === 35) {
-          UIO(Pet("Tapirus terrestris", "https://en.wikipedia.org/wiki/Tapir"))
-        } else {
-          IO.fail("Unknown pet id")
-        }
-      }
-
   val all: List[ZServerEndpoint[Env, _, _, _]] =
     List(
       getRegisterPage,
