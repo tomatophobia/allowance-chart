@@ -12,14 +12,14 @@ import sttp.tapir.generic.auto._
 import sttp.tapir.ztapir._
 import zio._
 
-object TransactionHistoryEndpoints {
+object TransactionHistoryEndpoints extends ErrorMapping {
 
   // TODO Error를 스트링 대신 다른 것으로
-  val getRegisterPage: ZServerEndpoint[Any, Unit, ServiceError, String] =
+  val getRegisterPage: ZServerEndpoint[Env, Unit, ServiceError, String] =
     endpoint.get
       .in("transaction-history" / "register-page")
       .out(htmlBodyUtf8)
-      .errorOut(stringBody)
+      .errorOut(customErrorBody())
       .tag(ApiDocTag.transactionHistory)
       .summary("Transaction history register page")
       .zServerLogic { _ =>
@@ -33,7 +33,7 @@ object TransactionHistoryEndpoints {
     endpoint.post
       .in("transaction-history")
       .in(multipartBody[NameWithTransactionHistory])
-      .errorOut(stringBody)
+      .errorOut(customErrorBody())
       .tag(ApiDocTag.transactionHistory)
       .summary("Register transaction history file")
       .zServerLogic { case NameWithTransactionHistory(name, transactionHistoryPart) =>
