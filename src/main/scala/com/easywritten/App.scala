@@ -61,6 +61,7 @@ object App extends zio.App {
 
     } yield serve)
       .use(_ => ZIO.never)
+      .provideCustomLayer(RegisterTransactionHistoryService.layer)
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = program.exitCode
 }
