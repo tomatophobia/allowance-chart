@@ -1,5 +1,6 @@
 package com.easywritten.allowancechart.adapter.in
 
+import com.easywritten.allowancechart.application.service.RegisterTransactionHistoryService
 import sttp.capabilities.WebSockets
 import sttp.capabilities.zio.ZioStreams
 import sttp.client3._
@@ -21,7 +22,7 @@ object TransactionHistoryEndpointsSpec extends DefaultRunnableSpec {
   override def spec: ZSpec[Environment, Failure] =
     suite("TransactionHistoryEndpointsSpec")(
       testM("register page returns status code 200 with html string") {
-        val zioBackendStub = SttpBackendStub[Task, WebSockets with ZioStreams](new RIOMonadAsyncError[Env])
+        val zioBackendStub = SttpBackendStub[RIO[Env, *], WebSockets with ZioStreams](new RIOMonadAsyncError[Env])
         // RichSttpBackendStub이 정확히 어떤 기능을 더 추가해주는지는 모름
         val backendStub = RichSttpBackendStub(zioBackendStub).whenRequestMatchesEndpointThenLogic(getRegisterPage)
         for {
@@ -32,7 +33,7 @@ object TransactionHistoryEndpointsSpec extends DefaultRunnableSpec {
       // 현재 tapir 버전 문제로 실행 불가
       // #42 https://github.com/tomatophobia/allowance-chart/pull/42#issuecomment-1060725204
       testM("post transaction-history file api returns status code 200") {
-        val zioBackendStub = SttpBackendStub[Task, WebSockets with ZioStreams](new RIOMonadAsyncError[Env])
+        val zioBackendStub = SttpBackendStub[RIO[Env, *], WebSockets with ZioStreams](new RIOMonadAsyncError[Env])
         // RichSttpBackendStub이 정확히 어떤 기능을 더 추가해주는지는 모름
         val backendStub =
           RichSttpBackendStub(zioBackendStub).whenRequestMatchesEndpointThenLogic(registerTransactionHistory)
@@ -50,5 +51,5 @@ object TransactionHistoryEndpointsSpec extends DefaultRunnableSpec {
         } yield assert(response.code)(equalTo(Ok)) &&
           assert(response.body)(isRight(isNonEmptyString))
       } @@ TestAspect.ignore
-    )
+    ).provideCustomLayer(RegisterTransactionHistoryService.layer)
 }

@@ -19,10 +19,10 @@ import zio.blocking.Blocking
 
 object App extends zio.App {
 
-  type AppEnv = ZEnv with EndpointEnv
   type EndpointEnv = TransactionHistoryEndpoints.Env
+  type AppEnv = Clock with EndpointEnv
 
-  val serverRoutes: HttpRoutes[RIO[EndpointEnv with Clock, *]] =
+  private val serverRoutes: HttpRoutes[RIO[AppEnv, *]] =
     ZHttp4sServerInterpreter().from(TransactionHistoryEndpoints.all).toRoutes
 
   // API documents
