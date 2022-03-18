@@ -14,7 +14,7 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
   import combinators._
 
   override def initialize(cost: TransactionCost): IO[AccountCommandReject, Unit] = read flatMap {
-    case PartialAccountState => append(AccountEvent.Initialize(cost))
+    case IdleAccountState => append(AccountEvent.Initialize(cost))
     case _                   => reject(AccountCommandReject.AccountAlreadyInitialized)
   }
 
@@ -58,10 +58,10 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
       else reject(AccountCommandReject.InsufficientShares("Selling failed"))
     }
 
-  private def ensureFullState: IO[AccountCommandReject, FullAccountState] =
+  private def ensureFullState: IO[AccountCommandReject, ActiveAccountState] =
     read flatMap {
-      case state: FullAccountState => IO.succeed(state)
-      case PartialAccountState     => reject(AccountCommandReject.AccountNotInitialized)
+      case state: ActiveAccountState => IO.succeed(state)
+      case IdleAccountState     => reject(AccountCommandReject.AccountNotInitialized)
     }
 }
 
