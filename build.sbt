@@ -8,7 +8,7 @@ ThisBuild / organizationName := "easywritten"
 lazy val root = (project in file("."))
   .settings(
     name := "allowance-chart",
-    libraryDependencies ++= zio.all ++ cats.all ++ http4s.all ++ tapir.all ++ webjars.all ++ logging.all ++ sttp.all ++
+    libraryDependencies ++= zio.all ++ cats.all ++ http4s.all ++ tapir.all ++ webjars.all ++ logging.all ++ sttp.all ++ circe.all ++
       Seq(
         "com.beachape" %% "enumeratum" % "1.7.0",
         "io.suzaku" %% "boopickle" % "1.4.0",
