@@ -1,7 +1,7 @@
 package com.easywritten.allowancechart.adapter.in
 
 import cats.syntax.all._
-import com.easywritten.allowancechart.adapter.in.page.RegisterTransactionHistory
+import com.easywritten.allowancechart.adapter.in.page.RegisterTransactionHistoryPage
 import com.easywritten.allowancechart.application.port.in.RegisterTransactionHistoryPort
 import com.easywritten.allowancechart.application.service.ServiceError
 import com.easywritten.allowancechart.domain.account.AccountName
@@ -23,7 +23,7 @@ object TransactionHistoryEndpoints extends ErrorMapping {
       .tag(ApiDocTag.transactionHistory)
       .summary("Transaction history register page")
       .zServerLogic { _ =>
-        ZIO.succeed(RegisterTransactionHistory.html)
+        ZIO.succeed(RegisterTransactionHistoryPage.html)
       }
 
   final case class NameWithTransactionHistory(name: String, securitiesCompany: String, transactionHistory: Part[TapirFile])
