@@ -4,6 +4,7 @@ import cats.syntax.all._
 import com.easywritten.allowancechart.adapter.in.page.RegisterTransactionHistoryPage
 import com.easywritten.allowancechart.application.port.in.RegisterTransactionHistoryPort
 import com.easywritten.allowancechart.application.service.ServiceError
+import com.easywritten.allowancechart.domain.SecuritiesCompany
 import com.easywritten.allowancechart.domain.account.AccountName
 import io.circe.generic.auto._
 import sttp.model.Part
