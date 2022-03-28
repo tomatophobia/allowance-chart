@@ -6,6 +6,7 @@ import com.easywritten.allowancechart.application.port.in.RegisterTransactionHis
 import com.easywritten.allowancechart.application.service.ServiceError
 import com.easywritten.allowancechart.domain.SecuritiesCompany
 import com.easywritten.allowancechart.domain.account.AccountName
+import io.circe._
 import io.circe.generic.auto._
 import sttp.model.Part
 import sttp.tapir.json.circe._
