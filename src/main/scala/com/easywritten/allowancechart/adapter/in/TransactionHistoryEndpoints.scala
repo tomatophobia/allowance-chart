@@ -28,7 +28,11 @@ object TransactionHistoryEndpoints extends ErrorMapping {
         ZIO.succeed(RegisterTransactionHistoryPage.html)
       }
 
-  final case class NameWithTransactionHistory(name: String, securitiesCompany: String, transactionHistory: Part[TapirFile])
+  final case class NameWithTransactionHistory(
+      accountName: AccountName,
+      securitiesCompany: SecuritiesCompany,
+      transactionHistory: Part[TapirFile]
+  )
 
   @SuppressWarnings(Array("org.wartremover.warts.Serializable", "org.wartremover.warts.JavaSerializable"))
   val registerTransactionHistory: ZServerEndpoint[Env, NameWithTransactionHistory, ServiceError, Unit] =
@@ -39,7 +43,7 @@ object TransactionHistoryEndpoints extends ErrorMapping {
       .tag(ApiDocTag.transactionHistory)
       .summary("Register transaction history file")
       .zServerLogic { case NameWithTransactionHistory(name, company, transactionHistoryPart) =>
-        RegisterTransactionHistoryPort.registerTransactionHistory(AccountName(name), Nil)
+        RegisterTransactionHistoryPort.registerTransactionHistory(name, Nil)
       }
 
   val all: List[ZServerEndpoint[Env, _, _, _]] =
