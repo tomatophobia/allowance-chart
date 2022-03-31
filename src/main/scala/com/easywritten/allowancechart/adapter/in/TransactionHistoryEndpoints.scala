@@ -29,8 +29,8 @@ object TransactionHistoryEndpoints extends ErrorMapping {
       }
 
   final case class NameWithTransactionHistory(
-      accountName: AccountName,
-      securitiesCompany: SecuritiesCompany,
+      accountName: String,
+      securitiesCompany: String,
       transactionHistory: Part[TapirFile]
   )
 
@@ -43,7 +43,11 @@ object TransactionHistoryEndpoints extends ErrorMapping {
       .tag(ApiDocTag.transactionHistory)
       .summary("Register transaction history file")
       .zServerLogic { case NameWithTransactionHistory(name, company, transactionHistoryPart) =>
-        RegisterTransactionHistoryPort.registerTransactionHistory(name, Nil)
+        RegisterTransactionHistoryPort.registerTransactionHistory(
+          AccountName(name),
+          SecuritiesCompany.withName(company),
+          Nil
+        )
       }
 
   val all: List[ZServerEndpoint[Env, _, _, _]] =

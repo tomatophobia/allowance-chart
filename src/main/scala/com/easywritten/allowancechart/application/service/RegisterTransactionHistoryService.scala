@@ -1,11 +1,16 @@
 package com.easywritten.allowancechart.application.service
 
 import com.easywritten.allowancechart.application.port.in.{RegisterTransactionHistoryPort, TransactionHistory}
+import com.easywritten.allowancechart.domain.SecuritiesCompany
 import com.easywritten.allowancechart.domain.account.AccountName
 import zio._
 
 final case class RegisterTransactionHistoryService() extends RegisterTransactionHistoryPort {
-  override def registerTransactionHistory(name: AccountName, transactionHistories: List[TransactionHistory]): IO[ServiceError, Unit] = ???
+  override def registerTransactionHistory(
+      name: AccountName,
+      company: SecuritiesCompany,
+      transactionHistories: List[TransactionHistory]
+  ): IO[ServiceError, Unit] = ???
 }
 
 object RegisterTransactionHistoryService {
