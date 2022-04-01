@@ -43,6 +43,7 @@ object TransactionHistoryEndpoints extends ErrorMapping {
       .tag(ApiDocTag.transactionHistory)
       .summary("Register transaction history file")
       .zServerLogic { case NameWithTransactionHistory(name, company, transactionHistoryPart) =>
+        // TODO 증권사 이름 parsing 도중 에러 처리
         RegisterTransactionHistoryPort.registerTransactionHistory(
           AccountName(name),
           SecuritiesCompany.withName(company),
