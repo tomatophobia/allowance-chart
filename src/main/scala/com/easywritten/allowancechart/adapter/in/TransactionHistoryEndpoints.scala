@@ -51,6 +51,11 @@ object TransactionHistoryEndpoints extends ErrorMapping {
         )
       }
 
+  // TODO 해당 함수에 대한 유닛 테스트를 만들면 아주 좋겠네 하하
+  private def parseTransactionHistoryFile(file: java.io.File, company: SecuritiesCompany): List[TransactionHistory] = {
+    ???
+  }
+
   val all: List[ZServerEndpoint[Env, _, _, _]] =
     List(
       getRegisterPage,
