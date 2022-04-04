@@ -30,7 +30,7 @@ object TransactionHistoryEndpointsSpec extends DefaultRunnableSpec {
         } yield assert(response.code)(equalTo(Ok)) &&
           assert(response.body)(isRight(isNonEmptyString))
       },
-      // 현재 tapir 버전 문제로 실행 불가
+      // TODO 현재 tapir 버전 문제로 실행 불가
       // #42 https://github.com/tomatophobia/allowance-chart/pull/42#issuecomment-1060725204
       testM("post transaction-history file api returns status code 200") {
         val zioBackendStub = SttpBackendStub[RIO[Env, *], WebSockets with ZioStreams](new RIOMonadAsyncError[Env])
