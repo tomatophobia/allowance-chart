@@ -11,7 +11,7 @@ final case class RegisterTransactionHistoryService() extends RegisterTransaction
       company: SecuritiesCompany,
       transactionHistories: List[TransactionHistory]
   ): IO[ServiceError, Unit] = {
-    // 여기서 증권사 별로 거래내역을 파싱하고 account 인터페이스의 메소드를 호출한다
+    // 여기서 account 인터페이스의 메소드를 호출한다
     ???
   }
 }
