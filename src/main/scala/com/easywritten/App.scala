@@ -2,8 +2,8 @@ package com.easywritten
 
 import cats.effect.Blocker
 import cats.syntax.all._
-import com.easywritten.allowancechart.adapter.in.TransactionHistoryEndpoints
-import com.easywritten.allowancechart.application.service.RegisterTransactionHistoryService
+import com.easywritten.allowancechart.adapter.in.TransactionRecordEndpoints
+import com.easywritten.allowancechart.application.service.RegisterTransactionRecordService
 import org.http4s._
 import org.http4s.server.Router
 import org.http4s.ember.server.EmberServerBuilder
@@ -19,18 +19,18 @@ import zio.blocking.Blocking
 
 object App extends zio.App {
 
-  type EndpointEnv = TransactionHistoryEndpoints.Env
+  type EndpointEnv = TransactionRecordEndpoints.Env
   type AppEnv = Clock with EndpointEnv
 
   private val serverRoutes: HttpRoutes[RIO[AppEnv, *]] =
-    ZHttp4sServerInterpreter().from(TransactionHistoryEndpoints.all).toRoutes
+    ZHttp4sServerInterpreter().from(TransactionRecordEndpoints.all).toRoutes
 
   // API documents
   val apiDocs: String = {
     import sttp.tapir.docs.openapi.OpenAPIDocsInterpreter
     import sttp.tapir.openapi.circe.yaml._
     OpenAPIDocsInterpreter()
-      .serverEndpointsToOpenAPI(TransactionHistoryEndpoints.all, "Allowance Chart", "0.0.0")
+      .serverEndpointsToOpenAPI(TransactionRecordEndpoints.all, "Allowance Chart", "0.0.0")
       .toYaml
   }
 
@@ -61,7 +61,7 @@ object App extends zio.App {
 
     } yield serve)
       .use(_ => ZIO.never)
-      .provideCustomLayer(RegisterTransactionHistoryService.layer)
+      .provideCustomLayer(RegisterTransactionRecordService.layer)
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = program.exitCode
 }

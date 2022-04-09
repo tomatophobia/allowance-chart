@@ -3,13 +3,13 @@ package com.easywritten.allowancechart.adapter.in.page
 import scalatags.Text._
 import scalatags.Text.all._
 
-object RegisterTransactionHistoryPage extends Base {
+object RegisterTransactionRecordPage extends Base {
   def html: String = frag.toString
 
-  val frag: TypedTag[String] = layout("거래내역 등록", Menu.ManageTransactionHistory)(
+  val frag: TypedTag[String] = layout("거래내역 등록", Menu.ManageTransactionRecord)(
     div(cls := "row")(
       div(cls := "col-md-6")(
-        form(action := "/transaction-history", method := "POST", enctype := "multipart/form-data")(
+        form(action := "/transaction-record", method := "POST", enctype := "multipart/form-data")(
           div(cls := "mb-3")(
             label(`for` := "account-name", cls := "form-label")("계좌 이름"),
             input(
@@ -38,12 +38,12 @@ object RegisterTransactionHistoryPage extends Base {
           ),
           div(cls := "mb-3")(
             // TODO 파일 확장자가 csv인지 확인
-            label(`for` := "transaction-history-file", cls := "form-label")("거래 내역 파일을 등록해주세요. (csv 확장자만 지원)"),
+            label(`for` := "transaction-record-file", cls := "form-label")("거래 내역 파일을 등록해주세요. (csv, UTF-8 인코딩만 지원)"),
             input(
               tpe := "file",
               cls := "form-control",
-              id := "transaction-history-file",
-              name := "transactionHistory",
+              id := "transaction-record-file",
+              name := "transactionRecord",
               required
             )
           ),
