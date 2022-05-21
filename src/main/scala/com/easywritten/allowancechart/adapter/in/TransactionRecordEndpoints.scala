@@ -45,14 +45,16 @@ object TransactionRecordEndpoints extends ErrorMapping {
       .zServerLogic { case NameWithTransactionRecord(name, company, transactionRecordPart) =>
         val securitiesCompany = SecuritiesCompany.withName(company)
 
-        val transactionRecord = TransactionRecordParser.fromFile(transactionRecordPart.body, securitiesCompany)
+        for {
+          // TODO 증권사 이름 parsing 도중 에러 처리
+          transactionRecord <- TransactionRecordParser.fromFile(transactionRecordPart.body, securitiesCompany)
 
-        // TODO 증권사 이름 parsing 도중 에러 처리
-        RegisterTransactionRecordPort.registerTransactionRecord(
-          AccountName(name),
-          securitiesCompany,
-          transactionRecord
-        )
+          _ <- RegisterTransactionRecordPort.registerTransactionRecord(
+            AccountName(name),
+            securitiesCompany,
+            transactionRecord
+          )
+        } yield ()
       }
 
   val all: List[ZServerEndpoint[Env, _, _, _]] =
