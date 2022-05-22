@@ -1,7 +1,7 @@
 package com.easywritten.allowancechart.adapter.in
 
 import com.easywritten.allowancechart.application.port.in.TransactionRecord
-import com.easywritten.allowancechart.domain.{Money, SecuritiesCompany}
+import com.easywritten.allowancechart.domain.{Money, MoneyBag, SecuritiesCompany}
 import zio._
 import zio.test._
 import zio.test.Assertion._
@@ -14,39 +14,80 @@ object TransactionRecordParserSpec extends DefaultRunnableSpec {
   override def spec: ZSpec[Environment, Failure] = {
     suite("TransactionRecordParserSpec")(
       suite("parse data using schema")(
-        testM("Daishin deposit") {
-          val data = List(
-            "2020.10.12",
-            "입금",
-            "",
-            "500,000",
-            "",
-            "",
-            "",
-            "",
-            "0",
-            "",
-            "",
-            "",
-            "종합투자상품",
-            "1",
-            "개별상품대체입금",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "0",
-            "500,000"
-          )
-          val record = parseDaishin(daishinSchema, data)
-          val expected = TransactionRecord.Deposit(LocalDate.of(2020, 10, 12), "입금", Money.krw(500000), "개별상품대체입금")
-          assertM(record)(equalTo(expected))
-        }
+        suite("Daishin")(
+          testM("deposit") {
+            val data = List(
+              "2020.10.12",
+              "입금",
+              "",
+              "500,000",
+              "",
+              "",
+              "",
+              "",
+              "0",
+              "",
+              "",
+              "",
+              "종합투자상품",
+              "1",
+              "개별상품대체입금",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "0",
+              "500,000"
+            )
+            val record = parseDaishin(daishinSchema, data)
+            val expected = TransactionRecord.Deposit(LocalDate.of(2020, 10, 12), "입금", Money.krw(500000), "개별상품대체입금")
+            assertM(record)(equalTo(expected))
+          },
+          testM("Foreign Exchange Buy") {
+            val data = List(
+              "2020.10.12",
+              "입금",
+              "KRW",
+              "499,995",
+              "",
+              "1,150.42",
+              "",
+              "",
+              "0",
+              "",
+              "",
+              "",
+              "",
+              "2",
+              "외화매수환전",
+              "USD",
+              "434.62",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "434.62",
+              "5"
+            )
+            val record = parseDaishin(daishinSchema, data)
+            val expected = TransactionRecord.ForeignExchangeBuy(
+              LocalDate.of(2020, 10, 12),
+              "입금",
+              MoneyBag.fromMoneys(Money.krw(-499995), Money.usd(434.62)),
+              1150.42,
+              "외화매수환전"
+            )
+            assertM(record)(equalTo(expected))
+          }
+        )
       ),
       suite("parse transaction record file")(
         testM("Nonghyup")(
