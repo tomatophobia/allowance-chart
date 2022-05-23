@@ -16,13 +16,9 @@ object TransactionRecordParserSpec extends DefaultRunnableSpec {
     suite("TransactionRecordParserSpec")(
       suite("parse data using schema")(
         testM("Daishin") {
-          daishinFixture.toList.foldLeft[IO[ServiceError, TestResult]](assertCompletesM) {
-            case (accM, (data, expected)) =>
-              val record = parseDaishin(daishinSchema, data)
-              for {
-                ass <- assertM(record)(equalTo(expected))
-                acc <- accM
-              } yield ass && acc
+          ZIO.foldLeft(daishinFixture)(assertCompletes) { case (acc, (data, expected)) =>
+            val record = parseDaishin(daishinSchema, data)
+            assertM(record)(equalTo(expected)).map(_ && acc)
           }
         }
       ),
