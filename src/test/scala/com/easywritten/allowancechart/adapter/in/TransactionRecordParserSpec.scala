@@ -1,7 +1,7 @@
 package com.easywritten.allowancechart.adapter.in
 
 import com.easywritten.allowancechart.application.port.in.TransactionRecord
-import com.easywritten.allowancechart.domain.{Money, MoneyBag, SecuritiesCompany}
+import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, Nation, SecuritiesCompany, Stock}
 import zio._
 import zio.test._
 import zio.test.Assertion._
@@ -84,6 +84,46 @@ object TransactionRecordParserSpec extends DefaultRunnableSpec {
               MoneyBag.fromMoneys(Money.krw(-499995), Money.usd(434.62)),
               1150.42,
               "외화매수환전"
+            )
+            assertM(record)(equalTo(expected))
+          },
+          testM("Buy") {
+            val data = List(
+              "2020.11.4",
+              "해외증권장내매매",
+              "USD",
+              "325",
+              "",
+              "",
+              "IVV",
+              "1",
+              "1",
+              "",
+              "",
+              "",
+              "",
+              "1",
+              "현금매수",
+              "",
+              "",
+              "",
+              "",
+              "Ishares Core S&P 500 Etf",
+              "325",
+              "0.26",
+              "",
+              "",
+              "109.36",
+              "5"
+            )
+            val record = parseDaishin(daishinSchema, data)
+            val expected = TransactionRecord.Buy(
+              LocalDate.of(2020, 11, 4),
+              "해외증권장내매매",
+              Money.usd(325),
+              Holding(Stock("IVV", Nation.USA), Money.usd(325), 1),
+              "현금매수",
+              Money.usd(0.26)
             )
             assertM(record)(equalTo(expected))
           }

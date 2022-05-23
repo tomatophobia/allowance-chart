@@ -2,7 +2,7 @@ package com.easywritten.allowancechart.adapter.in
 
 import com.easywritten.allowancechart.application.port.in.TransactionRecord
 import com.easywritten.allowancechart.application.service.ServiceError
-import com.easywritten.allowancechart.domain.{Money, MoneyBag, SecuritiesCompany}
+import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, Nation, SecuritiesCompany, Stock}
 import com.github.tototoshi.csv.CSVReader
 import zio._
 import zio.stream.ZStream
@@ -45,6 +45,7 @@ object TransactionRecordParser {
     val map = schema.zip(data).toMap
     val formatter = DateTimeFormatter.ofPattern("yyyy.M.d")
     // TODO 에러를 그냥 internal server error로 다 퉁쳤음
+    // TODO 적요명에 따라 겹치는 파싱이 많음 거래일, 거래구분, 거래금액 등...
     ZIO
       .foreach(map.get("적요명")) {
         case DaishinBriefName.deposit =>
@@ -78,6 +79,35 @@ object TransactionRecordParser {
             MoneyBag.fromMoneys(Money.krw(-krw), Money.usd(usd)),
             exRate,
             DaishinBriefName.fxBuy
+          )
+        case DaishinBriefName.buy =>
+          for {
+            dateString <- ZIO.succeed(map.get("거래일")).get.orElseFail(ServiceError.InternalServerError)
+            date <- ZIO.effect(LocalDate.parse(dateString, formatter)).orElseFail(ServiceError.InternalServerError)
+
+            transactionClass <- ZIO.succeed(map.get("거래구분")).get.orElseFail(ServiceError.InternalServerError)
+
+            totalPriceString <- ZIO.succeed(map.get("거래금액")).get.orElseFail(ServiceError.InternalServerError)
+            totalPrice <- ZIO
+              .effect(BigDecimal(totalPriceString.replace(",", "")))
+              .orElseFail(ServiceError.InternalServerError)
+
+            ticker <- ZIO.succeed(map.get("종목코드")).get.orElseFail(ServiceError.InternalServerError)
+            unitPriceString <- ZIO.succeed(map.get("단가")).get.orElseFail(ServiceError.InternalServerError)
+            unitPrice <- ZIO
+              .effect(BigDecimal(unitPriceString.replace(",", "")))
+              .orElseFail(ServiceError.InternalServerError)
+            quantity <- ZIO.succeed(map.get("수량").map(_.toInt)).get.orElseFail(ServiceError.InternalServerError)
+
+            feeString <- ZIO.succeed(map.get("수수료")).get.orElseFail(ServiceError.InternalServerError)
+            fee <- ZIO.effect(BigDecimal(feeString.replace(",", ""))).orElseFail(ServiceError.InternalServerError)
+          } yield TransactionRecord.Buy(
+            date,
+            transactionClass,
+            Money.usd(totalPrice),
+            Holding(Stock(ticker, Nation.USA), Money.usd(unitPrice), quantity),
+            DaishinBriefName.buy,
+            Money.usd(fee)
           )
       }
       .flatMap(ZIO.fromOption(_).orElseFail(ServiceError.InternalServerError))
