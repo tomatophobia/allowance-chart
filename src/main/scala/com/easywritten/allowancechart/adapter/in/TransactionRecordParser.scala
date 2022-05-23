@@ -23,6 +23,7 @@ object TransactionRecordParser {
           .grouped(2)
           .map(x => x.foldLeft(Seq[String]())(_ ++ _))
 
+        // TODO 에러를 ServiceError로 다 퉁치는 건 어찌 오케이인데 로깅으로 어떤 에러 메시지가 떴는지 나와야 한다...
         (
           for {
             head <- stream.take(1)

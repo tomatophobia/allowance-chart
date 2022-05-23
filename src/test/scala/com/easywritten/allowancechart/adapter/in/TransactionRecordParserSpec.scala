@@ -7,7 +7,7 @@ import zio._
 import zio.test._
 import zio.test.Assertion._
 
-import java.io.File
+import java.nio.file.Paths
 import java.time.LocalDate
 
 object TransactionRecordParserSpec extends DefaultRunnableSpec {
@@ -23,18 +23,12 @@ object TransactionRecordParserSpec extends DefaultRunnableSpec {
         }
       ),
       suite("parse transaction record file")(
-        testM("Nonghyup")(
+        testM("Daishin") {
           for {
-            file <- ZIO.effect(new File("resources/namuh.csv"))
-            transactionRecords <- fromFile(file, SecuritiesCompany.Nonghyup)
-          } yield assertCompletes
-        ),
-        testM("Daishin")(
-          for {
-            file <- ZIO.effect(new File("resources/creon.csv"))
+            file <- ZIO.effect(Paths.get(getClass.getResource("/transaction-files/creon-test1.csv").toURI).toFile)
             transactionRecords <- fromFile(file, SecuritiesCompany.Daishin)
-          } yield assertCompletes
-        )
+          } yield assert(transactionRecords)(equalTo(daishinFixture.values.toList))
+        }
       )
     )
   }
