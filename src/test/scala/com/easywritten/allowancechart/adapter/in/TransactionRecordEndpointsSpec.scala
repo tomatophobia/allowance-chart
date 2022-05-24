@@ -44,7 +44,7 @@ object TransactionRecordEndpointsSpec extends DefaultRunnableSpec {
             .multipartBody(
               List[Part[BasicRequestBody]](
                 Part("name", StringBody("NH투자증권", "utf-8")),
-                Part("transactionRecord", FileBody(SttpFile.fromPath(Paths.get("namuh.csv")), MediaType.TextCsv))
+                Part("transactionRecord", FileBody(SttpFile.fromPath(Paths.get("transaction-files/namuh.csv")), MediaType.TextCsv))
               )
             )
             .send(backendStub)

@@ -1,8 +1,9 @@
 package com.easywritten.allowancechart.adapter.in
 
+import cats.implicits._
 import com.easywritten.allowancechart.application.port.in.TransactionRecord
 import com.easywritten.allowancechart.application.service.ServiceError
-import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, Nation, SecuritiesCompany, Stock}
+import com.easywritten.allowancechart.domain.{Currency, Holding, Money, MoneyBag, Nation, SecuritiesCompany, Stock}
 import com.github.tototoshi.csv.CSVReader
 import zio._
 import zio.stream.ZStream
@@ -40,6 +41,7 @@ object TransactionRecordParser {
     val deposit = "개별상품대체입금"
     val fxBuy = "외화매수환전"
     val buy = "현금매수"
+    val dividend = "배당금"
   }
 
   def parseDaishin(schema: Seq[String], data: Seq[String]): IO[ServiceError, TransactionRecord] = {
@@ -109,6 +111,51 @@ object TransactionRecordParser {
             Holding(Stock(ticker, Nation.USA), Money.usd(unitPrice), quantity),
             DaishinBriefName.buy,
             Money.usd(fee)
+          )
+        case DaishinBriefName.dividend =>
+          // TODO 국내 배당, 해외 배당 모두 하나로 처리 중 그냥 나눠...?
+          // TODO 미국 주식만 한다고 가정하는데 일본 주식도 있어서 현지세 부분 수정 필요
+          for {
+            dateString <- ZIO.succeed(map.get("거래일")).get.orElseFail(ServiceError.InternalServerError)
+            date <- ZIO.effect(LocalDate.parse(dateString, formatter)).orElseFail(ServiceError.InternalServerError)
+
+            transactionClass <- ZIO.succeed(map.get("거래구분")).get.orElseFail(ServiceError.InternalServerError)
+
+            currencyString <- ZIO.succeed(map.get("통화")).get.orElseFail(ServiceError.InternalServerError)
+            currency <- ZIO
+              .effect(Currency.withNameInsensitive(currencyString))
+              .orElseFail(ServiceError.InternalServerError)
+
+            amountString <- ZIO.succeed(map.get("거래금액")).get.orElseFail(ServiceError.InternalServerError)
+            amount <- ZIO
+              .effect(Money(currency, BigDecimal(amountString.replace(",", ""))))
+              .orElseFail(ServiceError.InternalServerError)
+
+            ticker <- ZIO.succeed(map.get("종목코드")).get.orElseFail(ServiceError.InternalServerError)
+
+            domesticTaxString <- ZIO.succeed(map.get("국내세")).get.orElseFail(ServiceError.InternalServerError)
+            localTaxString <- ZIO.succeed(map.get("현지세")).get.orElseFail(ServiceError.InternalServerError)
+            tax <- ZIO
+              .effect(
+                if (domesticTaxString.nonEmpty)
+                  Money(
+                    Currency.KRW,
+                    BigDecimal(domesticTaxString.replace(",", ""))
+                  )
+                else
+                  Money(
+                    Currency.USD,
+                    BigDecimal(localTaxString.replace(",", ""))
+                  )
+              )
+              .orElseFail(ServiceError.InternalServerError)
+          } yield TransactionRecord.Dividend(
+            date,
+            transactionClass,
+            amount,
+            Stock(ticker, if (currency == Currency.KRW) Nation.KOR else Nation.USA),
+            DaishinBriefName.dividend,
+            tax
           )
       }
       .flatMap(ZIO.fromOption(_).orElseFail(ServiceError.InternalServerError))

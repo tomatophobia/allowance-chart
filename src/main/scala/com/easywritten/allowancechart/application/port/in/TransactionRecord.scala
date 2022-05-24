@@ -2,7 +2,7 @@ package com.easywritten.allowancechart.application.port.in
 
 import java.time.LocalDate
 import cats.kernel.Eq
-import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag}
+import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, Stock}
 import enumeratum._
 
 sealed abstract class TransactionRecord(date: LocalDate, transactionClass: String, briefName: String)
@@ -30,6 +30,15 @@ object TransactionRecord extends Enum[TransactionRecord] {
       holding: Holding,
       briefName: String,
       fee: Money
+  ) extends TransactionRecord(date, transactionClass, briefName)
+
+  final case class Dividend(
+      date: LocalDate,
+      transactionClass: String,
+      amount: Money,
+      stock: Stock,
+      briefName: String,
+      tax: Money
   ) extends TransactionRecord(date, transactionClass, briefName)
 
   override def values: IndexedSeq[TransactionRecord] = findValues
