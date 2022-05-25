@@ -31,7 +31,10 @@ object TransactionRecordParser {
             body <- stream.drop(1)
             record <- ZStream.fromEffect(parseDaishin(head, body))
           } yield record
-        ).runCollect.mapBoth[ServiceError, List[TransactionRecord]](_ => ServiceError.InternalServerError, _.toList)
+        ).runCollect.mapBoth[ServiceError, List[TransactionRecord]](
+          e => ServiceError.InternalServerError("거래내역 파일 파싱 실패", Some(e)),
+          _.toList
+        )
 
       case SecuritiesCompany.Nonghyup => ???
     }
@@ -53,29 +56,47 @@ object TransactionRecordParser {
       .foreach(map.get("적요명")) {
         case DaishinBriefName.deposit =>
           for {
-            dateString <- ZIO.succeed(map.get("거래일")).get.orElseFail(ServiceError.InternalServerError)
-            date <- ZIO.effect(LocalDate.parse(dateString, formatter)).orElseFail(ServiceError.InternalServerError)
+            dateString <- ZIO.succeed(map.get("거래일")).get.orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
+            date <- ZIO
+              .effect(LocalDate.parse(dateString, formatter))
+              .mapError(e => ServiceError.InternalServerError("거래일 파싱 실패", Some(e)))
 
-            transactionClass <- ZIO.succeed(map.get("거래구분")).get.orElseFail(ServiceError.InternalServerError)
+            transactionClass <- ZIO
+              .succeed(map.get("거래구분"))
+              .get
+              .orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
 
-            amountString <- ZIO.succeed(map.get("거래금액")).get.orElseFail(ServiceError.InternalServerError)
-            amount <- ZIO.effect(BigDecimal(amountString.replace(",", ""))).orElseFail(ServiceError.InternalServerError)
+            amountString <- ZIO.succeed(map.get("거래금액")).get.orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
+            amount <- ZIO
+              .effect(BigDecimal(amountString.replace(",", "")))
+              .mapError(e => ServiceError.InternalServerError("거래금액 파싱 실패", Some(e)))
           } yield TransactionRecord.Deposit(date, transactionClass, Money.krw(amount), DaishinBriefName.deposit)
         case DaishinBriefName.fxBuy =>
           for {
-            dateString <- ZIO.succeed(map.get("거래일")).get.orElseFail(ServiceError.InternalServerError)
-            date <- ZIO.effect(LocalDate.parse(dateString, formatter)).orElseFail(ServiceError.InternalServerError)
+            dateString <- ZIO.succeed(map.get("거래일")).get.orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
+            date <- ZIO
+              .effect(LocalDate.parse(dateString, formatter))
+              .mapError(e => ServiceError.InternalServerError("거래일 파싱 실패", Some(e)))
 
-            transactionClass <- ZIO.succeed(map.get("거래구분")).get.orElseFail(ServiceError.InternalServerError)
+            transactionClass <- ZIO
+              .succeed(map.get("거래구분"))
+              .get
+              .orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
 
-            krwString <- ZIO.succeed(map.get("거래금액")).get.orElseFail(ServiceError.InternalServerError)
-            krw <- ZIO.effect(BigDecimal(krwString.replace(",", ""))).orElseFail(ServiceError.InternalServerError)
+            krwString <- ZIO.succeed(map.get("거래금액")).get.orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
+            krw <- ZIO
+              .effect(BigDecimal(krwString.replace(",", "")))
+              .mapError(e => ServiceError.InternalServerError("거래금액 파싱 실패", Some(e)))
 
-            usdString <- ZIO.succeed(map.get("환전금액")).get.orElseFail(ServiceError.InternalServerError)
-            usd <- ZIO.effect(BigDecimal(usdString.replace(",", ""))).orElseFail(ServiceError.InternalServerError)
+            usdString <- ZIO.succeed(map.get("환전금액")).get.orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
+            usd <- ZIO
+              .effect(BigDecimal(usdString.replace(",", "")))
+              .mapError(e => ServiceError.InternalServerError("환전금액 파싱 실패", Some(e)))
 
-            rateString <- ZIO.succeed(map.get("입금환율")).get.orElseFail(ServiceError.InternalServerError)
-            exRate <- ZIO.effect(BigDecimal(rateString.replace(",", ""))).orElseFail(ServiceError.InternalServerError)
+            rateString <- ZIO.succeed(map.get("입금환율")).get.orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
+            exRate <- ZIO
+              .effect(BigDecimal(rateString.replace(",", "")))
+              .mapError(e => ServiceError.InternalServerError("환율 파싱 실패", Some(e)))
           } yield TransactionRecord.ForeignExchangeBuy(
             date,
             transactionClass,
@@ -85,25 +106,41 @@ object TransactionRecordParser {
           )
         case DaishinBriefName.buy =>
           for {
-            dateString <- ZIO.succeed(map.get("거래일")).get.orElseFail(ServiceError.InternalServerError)
-            date <- ZIO.effect(LocalDate.parse(dateString, formatter)).orElseFail(ServiceError.InternalServerError)
+            dateString <- ZIO.succeed(map.get("거래일")).get.orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
+            date <- ZIO
+              .effect(LocalDate.parse(dateString, formatter))
+              .mapError(e => ServiceError.InternalServerError("거래일 파싱 실패", Some(e)))
 
-            transactionClass <- ZIO.succeed(map.get("거래구분")).get.orElseFail(ServiceError.InternalServerError)
+            transactionClass <- ZIO
+              .succeed(map.get("거래구분"))
+              .get
+              .orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
 
-            totalPriceString <- ZIO.succeed(map.get("거래금액")).get.orElseFail(ServiceError.InternalServerError)
+            totalPriceString <- ZIO
+              .succeed(map.get("거래금액"))
+              .get
+              .orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
             totalPrice <- ZIO
               .effect(BigDecimal(totalPriceString.replace(",", "")))
-              .orElseFail(ServiceError.InternalServerError)
+              .mapError(e => ServiceError.InternalServerError("거래금액 파싱 실패", Some(e)))
 
-            ticker <- ZIO.succeed(map.get("종목코드")).get.orElseFail(ServiceError.InternalServerError)
-            unitPriceString <- ZIO.succeed(map.get("단가")).get.orElseFail(ServiceError.InternalServerError)
+            ticker <- ZIO.succeed(map.get("종목코드")).get.orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
+            unitPriceString <- ZIO
+              .succeed(map.get("단가"))
+              .get
+              .orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
             unitPrice <- ZIO
               .effect(BigDecimal(unitPriceString.replace(",", "")))
-              .orElseFail(ServiceError.InternalServerError)
-            quantity <- ZIO.succeed(map.get("수량").map(_.toInt)).get.orElseFail(ServiceError.InternalServerError)
+              .mapError(e => ServiceError.InternalServerError("단가 파싱 실패", Some(e)))
+            quantity <- ZIO
+              .succeed(map.get("수량").map(_.toInt))
+              .get
+              .orElseFail(ServiceError.InternalServerError("수량 파싱 실패"))
 
-            feeString <- ZIO.succeed(map.get("수수료")).get.orElseFail(ServiceError.InternalServerError)
-            fee <- ZIO.effect(BigDecimal(feeString.replace(",", ""))).orElseFail(ServiceError.InternalServerError)
+            feeString <- ZIO.succeed(map.get("수수료")).get.orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
+            fee <- ZIO
+              .effect(BigDecimal(feeString.replace(",", "")))
+              .mapError(e => ServiceError.InternalServerError("수수료 파싱 실패", Some(e)))
           } yield TransactionRecord.Buy(
             date,
             transactionClass,
@@ -116,25 +153,36 @@ object TransactionRecordParser {
           // TODO 국내 배당, 해외 배당 모두 하나로 처리 중 그냥 나눠...?
           // TODO 미국 주식만 한다고 가정하는데 일본 주식도 있어서 현지세 부분 수정 필요
           for {
-            dateString <- ZIO.succeed(map.get("거래일")).get.orElseFail(ServiceError.InternalServerError)
-            date <- ZIO.effect(LocalDate.parse(dateString, formatter)).orElseFail(ServiceError.InternalServerError)
+            dateString <- ZIO.succeed(map.get("거래일")).get.orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
+            date <- ZIO
+              .effect(LocalDate.parse(dateString, formatter))
+              .orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
 
-            transactionClass <- ZIO.succeed(map.get("거래구분")).get.orElseFail(ServiceError.InternalServerError)
+            transactionClass <- ZIO
+              .succeed(map.get("거래구분"))
+              .get
+              .orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
 
-            currencyString <- ZIO.succeed(map.get("통화")).get.orElseFail(ServiceError.InternalServerError)
+            currencyString <- ZIO.succeed(map.get("통화")).get.orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
             currency <- ZIO
               .effect(Currency.withNameInsensitive(currencyString))
-              .orElseFail(ServiceError.InternalServerError)
+              .mapError(e => ServiceError.InternalServerError("통화 파싱 실패", Some(e)))
 
-            amountString <- ZIO.succeed(map.get("거래금액")).get.orElseFail(ServiceError.InternalServerError)
+            amountString <- ZIO.succeed(map.get("거래금액")).get.orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
             amount <- ZIO
               .effect(Money(currency, BigDecimal(amountString.replace(",", ""))))
-              .orElseFail(ServiceError.InternalServerError)
+              .mapError(e => ServiceError.InternalServerError("거래금액 파싱 실패", Some(e)))
 
-            ticker <- ZIO.succeed(map.get("종목코드")).get.orElseFail(ServiceError.InternalServerError)
+            ticker <- ZIO.succeed(map.get("종목코드")).get.orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
 
-            domesticTaxString <- ZIO.succeed(map.get("국내세")).get.orElseFail(ServiceError.InternalServerError)
-            localTaxString <- ZIO.succeed(map.get("현지세")).get.orElseFail(ServiceError.InternalServerError)
+            domesticTaxString <- ZIO
+              .succeed(map.get("국내세"))
+              .get
+              .orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
+            localTaxString <- ZIO
+              .succeed(map.get("현지세"))
+              .get
+              .orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
             tax <- ZIO
               .effect(
                 if (domesticTaxString.nonEmpty)
@@ -148,7 +196,7 @@ object TransactionRecordParser {
                     BigDecimal(localTaxString.replace(",", ""))
                   )
               )
-              .orElseFail(ServiceError.InternalServerError)
+              .mapError(e => ServiceError.InternalServerError("세금 파싱 실패", Some(e)))
           } yield TransactionRecord.Dividend(
             date,
             transactionClass,
@@ -158,6 +206,6 @@ object TransactionRecordParser {
             tax
           )
       }
-      .flatMap(ZIO.fromOption(_).orElseFail(ServiceError.InternalServerError))
+      .flatMap(ZIO.fromOption(_).orElseFail(ServiceError.InternalServerError("지원하지 않는 적요명")))
   }
 }
