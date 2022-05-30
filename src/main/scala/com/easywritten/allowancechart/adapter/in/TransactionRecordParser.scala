@@ -45,6 +45,7 @@ object TransactionRecordParser {
     val fxBuy = "외화매수환전"
     val buy = "현금매수"
     val dividend = "배당금"
+    val depositInterest = "예탁금이용료"
   }
 
   def parseDaishin(schema: Seq[String], data: Seq[String]): IO[ServiceError, TransactionRecord] = {
@@ -54,7 +55,7 @@ object TransactionRecordParser {
     // TODO 적요명에 따라 겹치는 파싱이 많음 거래일, 거래구분, 거래금액 등...
     ZIO
       .foreach(map.get("적요명")) {
-        case DaishinBriefName.deposit =>
+        case briefName @ (DaishinBriefName.deposit | DaishinBriefName.depositInterest) =>
           for {
             dateString <- ZIO.succeed(map.get("거래일")).get.orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
             date <- ZIO
@@ -70,7 +71,7 @@ object TransactionRecordParser {
             amount <- ZIO
               .effect(BigDecimal(amountString.replace(",", "")))
               .mapError(e => ServiceError.InternalServerError("거래금액 파싱 실패", Some(e)))
-          } yield TransactionRecord.Deposit(date, transactionClass, Money.krw(amount), DaishinBriefName.deposit)
+          } yield TransactionRecord.Deposit(date, transactionClass, Money.krw(amount), briefName)
         case DaishinBriefName.fxBuy =>
           for {
             dateString <- ZIO.succeed(map.get("거래일")).get.orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))

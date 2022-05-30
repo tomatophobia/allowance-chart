@@ -1,7 +1,6 @@
 package com.easywritten.allowancechart.adapter.in
 
 import com.easywritten.allowancechart.application.port.in.TransactionRecord
-import com.easywritten.allowancechart.application.service.ServiceError
 import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, Nation, SecuritiesCompany, Stock}
 import zio._
 import zio.test._
@@ -196,6 +195,39 @@ object TransactionRecordParserSpec extends DefaultRunnableSpec {
       Stock("IVV", Nation.USA),
       "배당금",
       Money.usd(0.24)
+    ),
+    List(
+      "2021.4.11",
+      "입금",
+      "",
+      "5",
+      "",
+      "",
+      "",
+      "",
+      "0",
+      "",
+      "",
+      "",
+      "",
+      "1",
+      "예탁금이용료",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "0",
+      "15"
+    ) -> TransactionRecord.Deposit(
+      LocalDate.of(2021, 4, 11),
+      "입금",
+      Money.krw(5),
+      "예탁금이용료"
     )
   )
 }
