@@ -44,6 +44,7 @@ object TransactionRecordParser {
     val deposit = "개별상품대체입금"
     val fxBuy = "외화매수환전"
     val buy = "현금매수"
+    val sell = "현금매도"
     val dividend = "배당금"
     val depositInterest = "예탁금이용료"
   }
@@ -149,6 +150,60 @@ object TransactionRecordParser {
             Holding(Stock(ticker, Nation.USA), Money.usd(unitPrice), quantity),
             DaishinBriefName.buy,
             Money.usd(fee)
+          )
+        case DaishinBriefName.sell =>
+          for {
+            dateString <- ZIO.succeed(map.get("거래일")).get.orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
+            date <- ZIO
+              .effect(LocalDate.parse(dateString, formatter))
+              .mapError(e => ServiceError.InternalServerError("거래일 파싱 실패", Some(e)))
+
+            transactionClass <- ZIO
+              .succeed(map.get("거래구분"))
+              .get
+              .orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
+
+            totalPriceString <- ZIO
+              .succeed(map.get("거래금액"))
+              .get
+              .orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
+            totalPrice <- ZIO
+              .effect(BigDecimal(totalPriceString.replace(",", "")))
+              .mapError(e => ServiceError.InternalServerError("거래금액 파싱 실패", Some(e)))
+
+            ticker <- ZIO.succeed(map.get("종목코드")).get.orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
+            unitPriceString <- ZIO
+              .succeed(map.get("단가"))
+              .get
+              .orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
+            unitPrice <- ZIO
+              .effect(BigDecimal(unitPriceString.replace(",", "")))
+              .mapError(e => ServiceError.InternalServerError("단가 파싱 실패", Some(e)))
+            quantity <- ZIO
+              .succeed(map.get("수량").map(_.toInt))
+              .get
+              .orElseFail(ServiceError.InternalServerError("수량 파싱 실패"))
+
+            feeString <- ZIO.succeed(map.get("수수료")).get.orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
+            fee <- ZIO
+              .effect(BigDecimal(feeString.replace(",", "")))
+              .mapError(e => ServiceError.InternalServerError("수수료 파싱 실패", Some(e)))
+
+            localTaxString <- ZIO
+              .succeed(map.get("현지세"))
+              .get
+              .orElseFail(ServiceError.InternalServerError("적요명 존재하지 않음"))
+            localTax <- ZIO
+              .effect(BigDecimal(localTaxString.replace(",", "")))
+              .mapError(e => ServiceError.InternalServerError("현지세 파싱 실패", Some(e)))
+          } yield TransactionRecord.Sell(
+            date,
+            transactionClass,
+            Money.usd(totalPrice),
+            Holding(Stock(ticker, Nation.USA), Money.usd(unitPrice), quantity),
+            DaishinBriefName.sell,
+            Money.usd(fee),
+            Money.usd(localTax)
           )
         case DaishinBriefName.dividend =>
           // TODO 국내 배당, 해외 배당 모두 하나로 처리 중 그냥 나눠...?

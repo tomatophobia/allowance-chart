@@ -15,6 +15,15 @@ object TransactionRecord extends Enum[TransactionRecord] {
   final case class Deposit(date: LocalDate, transactionClass: String, amount: Money, briefName: String)
       extends TransactionRecord(date, transactionClass, briefName)
 
+  final case class Dividend(
+      date: LocalDate,
+      transactionClass: String,
+      amount: Money,
+      stock: Stock,
+      briefName: String,
+      tax: Money
+  ) extends TransactionRecord(date, transactionClass, briefName)
+
   final case class ForeignExchangeBuy(
       date: LocalDate,
       transactionClass: String,
@@ -32,16 +41,17 @@ object TransactionRecord extends Enum[TransactionRecord] {
       fee: Money
   ) extends TransactionRecord(date, transactionClass, briefName)
 
-  final case class Dividend(
+  final case class Sell(
       date: LocalDate,
       transactionClass: String,
-      amount: Money,
-      stock: Stock,
+      totalPrice: Money,
+      holding: Holding,
       briefName: String,
+      fee: Money,
       tax: Money
   ) extends TransactionRecord(date, transactionClass, briefName)
 
-  override def values: IndexedSeq[TransactionRecord] = findValues
+  final override def values: IndexedSeq[TransactionRecord] = findValues
 
   implicit val eqTransactionRecord: Eq[TransactionRecord] = Eq.fromUniversalEquals
 }

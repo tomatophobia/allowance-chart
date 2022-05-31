@@ -228,6 +228,42 @@ object TransactionRecordParserSpec extends DefaultRunnableSpec {
       "입금",
       Money.krw(5),
       "예탁금이용료"
+    ),
+    List(
+      "2021.5.25",
+      "해외증권장내매매",
+      "USD",
+      "79.07",
+      "",
+      "",
+      "PBW",
+      "1",
+      "0",
+      "",
+      "",
+      "",
+      "",
+      "1",
+      "현금매도",
+      "",
+      "",
+      "",
+      "",
+      "Powershares Wilderh Clean En",
+      "79.07",
+      "0.06",
+      "0.01",
+      "",
+      "2,423.51",
+      "500,015"
+    ) -> TransactionRecord.Sell(
+      LocalDate.of(2021, 5, 25),
+      "해외증권장내매매",
+      Money.usd(79.07),
+      Holding(Stock("PBW", Nation.USA), Money.usd(79.07), 1),
+      "현금매도",
+      Money.usd(0.06),
+      Money.usd(0.01)
     )
   )
 }
