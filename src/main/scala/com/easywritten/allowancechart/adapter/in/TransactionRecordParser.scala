@@ -420,6 +420,34 @@ object TransactionRecordParser {
       localTax
     )
   }
+
+  def daishinMergePartialBuyOrSell(entries: List[DaishinEntry]): IO[ServiceError, DaishinEntry] = {
+    for {
+      head <- ZIO.succeed(entries.headOption).get.orElseFail(ServiceError.InternalServerError("합칠 주문이 존재하지 않음"))
+      briefName = head.briefName
+      merged <- ZIO.foldLeft(entries.drop(1))(head) { (acc, entry) =>
+        if (acc.briefName =!= briefName) ZIO.fail(ServiceError.InternalServerError("합칠 주문의 적요명이 일치하지 않음"))
+        else {
+          val q1 = acc.quantity.getOrElse(0)
+          val q2 = entry.quantity.getOrElse(0)
+          val p1 = acc.unitPrice.getOrElse(BigDecimal(0))
+          val p2 = entry.unitPrice.getOrElse(BigDecimal(0))
+          val ta1 = acc.transactionAmount.getOrElse(BigDecimal(0))
+          val ta2 = entry.transactionAmount.getOrElse(BigDecimal(0))
+          val f1 = acc.fee.getOrElse(BigDecimal(0))
+          val f2 = entry.fee.getOrElse(BigDecimal(0))
+          ZIO.succeed(
+            acc.copy(
+              quantity = Some(q1 + q2),
+              transactionAmount = Some(ta1 + ta2),
+              unitPrice = Some((q1 * p1 + q2 * p2) / (q1 + q2)),
+              fee = Some(f1 + f2)
+            )
+          )
+        }
+      }
+    } yield merged
+  }
 }
 
 /** @param date 거래일

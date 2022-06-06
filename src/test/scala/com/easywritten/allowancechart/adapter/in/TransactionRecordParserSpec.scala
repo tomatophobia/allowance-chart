@@ -1,7 +1,7 @@
 package com.easywritten.allowancechart.adapter.in
 
 import com.easywritten.allowancechart.application.port.in.TransactionRecord
-import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, Nation, SecuritiesCompany, Stock}
+import com.easywritten.allowancechart.domain.{Currency, Holding, Money, MoneyBag, Nation, SecuritiesCompany, Stock}
 import zio._
 import zio.test._
 import zio.test.Assertion._
@@ -13,14 +13,73 @@ object TransactionRecordParserSpec extends DefaultRunnableSpec {
   import TransactionRecordParser._
   override def spec: ZSpec[Environment, Failure] = {
     suite("TransactionRecordParserSpec")(
-      suite("parse data using schema")(
-        testM("preparse Daishin") {
+      suite("parse Daishin")(
+        testM("phase 1. String to DaishinEntry") {
           ZIO.foldLeft(DaishinParserFixture.stringToEntry)(assertCompletes) { case (acc, (data, expected)) =>
             val entry = daishinPreParsing(DaishinParserFixture.schema.zip(data).toMap)
             assertM(entry)(equalTo(expected)).map(_ && acc)
           }
         },
-        testM("Daishin") {
+        testM("phase 2. merge partial buy or sell entry") {
+          val dividedBuy = List(
+            DaishinEntry(
+              LocalDate.of(2020, 12, 17),
+              "해외증권장내매매",
+              Some(Currency.USD),
+              Some(200.78),
+              None,
+              Some("DKNG"),
+              Some(2),
+              None,
+              "현금매수",
+              None,
+              None,
+              None,
+              Some(50.2),
+              Some(0.16),
+              None
+          ),
+            DaishinEntry(
+              LocalDate.of(2020, 12, 17),
+              "해외증권장내매매",
+              Some(Currency.USD),
+              None,
+              None,
+              Some("DKNG"),
+              Some(2),
+              None,
+              "현금매수",
+              None,
+              None,
+              None,
+              Some(50.19),
+              None,
+              None
+            )
+          )
+          val expectedBuy = DaishinEntry(
+            LocalDate.of(2020, 12, 17),
+            "해외증권장내매매",
+            Some(Currency.USD),
+            Some(200.78),
+            None,
+            Some("DKNG"),
+            Some(4),
+            None,
+            "현금매수",
+            None,
+            None,
+            None,
+            Some(50.195),
+            Some(0.16),
+            None
+          )
+          assertM(daishinMergePartialBuyOrSell(dividedBuy))(equalTo(expectedBuy))
+        },
+        testM("phase 3. DaishinEntry to TransactionRecord") {
+          assertCompletesM
+        },
+        testM("whole process") {
           ZIO.foldLeft(DaishinParserFixture.stringToRecord)(assertCompletes) { case (acc, (data, expected)) =>
             val record = parseDaishin(DaishinParserFixture.schema, data)
             assertM(record)(equalTo(expected)).map(_ && acc)
