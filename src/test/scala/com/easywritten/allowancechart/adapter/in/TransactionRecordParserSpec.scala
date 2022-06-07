@@ -45,30 +45,7 @@ object TransactionRecordParserSpec extends DefaultRunnableSpec {
             transactionRecords <- fromFile(file, SecuritiesCompany.Daishin)
           } yield assert(transactionRecords)(equalTo(DaishinParserFixture.stringToRecord.values.toList))
         }
-      ), // @@ TestAspect.ignore // TODO
-      suite("merge TransactionRecord")(
-        testM("merge buy record") {
-          val records = List(
-            TransactionRecord.Buy(
-              LocalDate.of(2021, 1, 7),
-              "해외증권장내매매",
-              Money.usd(0),
-              Holding(Stock("DKNG", Nation.USA), Money.usd(46), 2),
-              "현금매수",
-              Money.usd(0)
-            ),
-            TransactionRecord.Buy(
-              LocalDate.of(2021, 1, 7),
-              "해외증권장내매매",
-              Money.usd(184.62),
-              Holding(Stock("DKNG", Nation.USA), Money.usd(46.31), 2),
-              "현금매수",
-              Money.usd(0.15)
-            )
-          )
-          assertCompletesM
-        }
-      )
+      ) @@ TestAspect.ignore // TODO
     )
   }
 
