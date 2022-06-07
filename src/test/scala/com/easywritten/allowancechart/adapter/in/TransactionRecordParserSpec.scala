@@ -1,13 +1,11 @@
 package com.easywritten.allowancechart.adapter.in
 
-import com.easywritten.allowancechart.application.port.in.TransactionRecord
-import com.easywritten.allowancechart.domain.{Currency, Holding, Money, MoneyBag, Nation, SecuritiesCompany, Stock}
+import com.easywritten.allowancechart.domain.SecuritiesCompany
 import zio._
 import zio.test._
 import zio.test.Assertion._
 
 import java.nio.file.Paths
-import java.time.LocalDate
 
 object TransactionRecordParserSpec extends DefaultRunnableSpec {
   import TransactionRecordParser._
@@ -15,8 +13,8 @@ object TransactionRecordParserSpec extends DefaultRunnableSpec {
     suite("TransactionRecordParserSpec")(
       suite("parse Daishin")(
         testM("phase 1. String to DaishinEntry") {
-          ZIO.foldLeft(DaishinParserFixture.stringToEntry)(assertCompletes) { case (acc, (data, expected)) =>
-            val entry = daishinPreParsing(DaishinParserFixture.schema.zip(data).toMap)
+          ZIO.foldLeft(DaishinParserFixture.stringToEntry)(assertCompletes) { case (acc, (raw, expected)) =>
+            val entry = daishinParseStringToEntry(DaishinParserFixture.schema.zip(raw).toMap)
             assertM(entry)(equalTo(expected)).map(_ && acc)
           }
         },
@@ -29,11 +27,14 @@ object TransactionRecordParserSpec extends DefaultRunnableSpec {
           } yield assert(mergedBuy)(equalTo(expectedBuy)) && assert(mergedSell)(equalTo(expectedSell))
         },
         testM("phase 3. DaishinEntry to TransactionRecord") {
-          assertCompletesM
+          ZIO.foldLeft(DaishinParserFixture.entryToRecord)(assertCompletes) { case (acc, (entry, expected)) =>
+            val record = daishinParseEntryToRecord(entry)
+            assertM(record)(equalTo(expected)).map(_ && acc)
+          }
         },
         testM("whole process") {
-          ZIO.foldLeft(DaishinParserFixture.stringToRecord)(assertCompletes) { case (acc, (data, expected)) =>
-            val record = parseDaishin(DaishinParserFixture.schema, data)
+          ZIO.foldLeft(DaishinParserFixture.stringToRecord)(assertCompletes) { case (acc, (raw, expected)) =>
+            val record = parseDaishin(DaishinParserFixture.schema, raw)
             assertM(record)(equalTo(expected)).map(_ && acc)
           }
         }

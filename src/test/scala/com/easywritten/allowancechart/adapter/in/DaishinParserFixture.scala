@@ -111,22 +111,22 @@ object DaishinParserFixture {
       "5"
     )
       -> DaishinEntry(
-      LocalDate.of(2020, 10, 12),
-      "입금",
-      Some(Currency.KRW),
-      Some(BigDecimal(499995)),
-      Some(BigDecimal(1150.42)),
-      None,
-      None,
-      None,
-      "외화매수환전",
-      Some(Currency.USD),
-      Some(BigDecimal(434.62)),
-      None,
-      None,
-      None,
-      None
-    ),
+        LocalDate.of(2020, 10, 12),
+        "입금",
+        Some(Currency.KRW),
+        Some(BigDecimal(499995)),
+        Some(BigDecimal(1150.42)),
+        None,
+        None,
+        None,
+        "외화매수환전",
+        Some(Currency.USD),
+        Some(BigDecimal(434.62)),
+        None,
+        None,
+        None,
+        None
+      ),
     List(
       "2020.11.4",
       "해외증권장내매매",
@@ -156,22 +156,22 @@ object DaishinParserFixture {
       "5"
     )
       -> DaishinEntry(
-      LocalDate.of(2020, 11, 4),
-      "해외증권장내매매",
-      Some(Currency.USD),
-      Some(BigDecimal(325)),
-      None,
-      Some("IVV"),
-      Some(1),
-      None,
-      "현금매수",
-      None,
-      None,
-      None,
-      Some(BigDecimal(325)),
-      Some(BigDecimal(0.26)),
-      None
-    ),
+        LocalDate.of(2020, 11, 4),
+        "해외증권장내매매",
+        Some(Currency.USD),
+        Some(BigDecimal(325)),
+        None,
+        Some("IVV"),
+        Some(1),
+        None,
+        "현금매수",
+        None,
+        None,
+        None,
+        Some(BigDecimal(325)),
+        Some(BigDecimal(0.26)),
+        None
+      ),
     List(
       "2020.12.22",
       "입금",
@@ -497,12 +497,147 @@ object DaishinParserFixture {
       None,
       None,
       None,
-      Some(BigDecimal("83.26333333333333333333333333333333", MathContext.UNLIMITED)), // 이게 좀 부적절하긴 할지도? 너무 인풋 변화에 민감하게 변할 것 같음
+      Some(
+        BigDecimal("83.26333333333333333333333333333333", MathContext.UNLIMITED)
+      ), // 이게 좀 부적절하긴 할지도? 너무 인풋 변화에 민감하게 변할 것 같음
       Some(0.2),
       Some(0.01)
     )
 
   }
+
+  val entryToRecord: Map[DaishinEntry, TransactionRecord] = Map(
+    DaishinEntry(
+      LocalDate.of(2020, 10, 12),
+      "입금",
+      None,
+      Some(500000),
+      None,
+      None,
+      None,
+      None,
+      "개별상품대체입금",
+      None,
+      None,
+      None,
+      None,
+      None,
+      None
+    ) -> TransactionRecord.Deposit(LocalDate.of(2020, 10, 12), "입금", Money(Currency.KRW, 500000), "개별상품대체입금"),
+    DaishinEntry(
+      LocalDate.of(2020, 10, 12),
+      "입금",
+      Some(Currency.KRW),
+      Some(499995),
+      Some(1150.42),
+      None,
+      None,
+      None,
+      "외화매수환전",
+      Some(Currency.USD),
+      Some(434.62),
+      None,
+      None,
+      None,
+      None
+    ) -> TransactionRecord.ForeignExchangeBuy(
+      LocalDate.of(2020, 10, 12),
+      "입금",
+      MoneyBag(Map(Currency.KRW -> Money(Currency.KRW, -499995), Currency.USD -> Money(Currency.USD, 434.62))),
+      1150.42,
+      "외화매수환전"
+    ),
+    DaishinEntry(
+      LocalDate.of(2020, 11, 4),
+      "해외증권장내매매",
+      Some(Currency.USD),
+      Some(325),
+      None,
+      Some("IVV"),
+      Some(1),
+      None,
+      "현금매수",
+      None,
+      None,
+      None,
+      Some(325),
+      Some(0.26),
+      None
+    ) -> TransactionRecord.Buy(
+      LocalDate.of(2020, 11, 4),
+      "해외증권장내매매",
+      Money(Currency.USD, 325),
+      Holding(Stock("IVV", Nation.USA), Money(Currency.USD, 325), 1),
+      "현금매수",
+      Money(Currency.USD, 0.26)
+    ),
+    DaishinEntry(
+      LocalDate.of(2020, 12, 22),
+      "입금",
+      Some(Currency.USD),
+      Some(1.61),
+      None,
+      Some("IVV"),
+      None,
+      None,
+      "배당금",
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some(0.24)
+    ) -> TransactionRecord.Dividend(
+      LocalDate.of(2020, 12, 22),
+      "입금",
+      Money(Currency.USD, 1.61),
+      Stock("IVV", Nation.USA),
+      "배당금",
+      Money(Currency.USD, 0.24)
+    ),
+    DaishinEntry(
+      LocalDate.of(2021, 4, 11),
+      "입금",
+      None,
+      Some(5),
+      None,
+      None,
+      None,
+      None,
+      "예탁금이용료",
+      None,
+      None,
+      None,
+      None,
+      None,
+      None
+    ) -> TransactionRecord.Deposit(LocalDate.of(2021, 4, 11), "입금", Money(Currency.KRW, 5), "예탁금이용료"),
+    DaishinEntry(
+      LocalDate.of(2021, 5, 25),
+      "해외증권장내매매",
+      Some(Currency.USD),
+      Some(79.07),
+      None,
+      Some("PBW"),
+      Some(1),
+      None,
+      "현금매도",
+      None,
+      None,
+      None,
+      Some(79.07),
+      Some(0.06),
+      Some(0.01)
+    ) -> TransactionRecord.Sell(
+      LocalDate.of(2021, 5, 25),
+      "해외증권장내매매",
+      Money(Currency.USD, 79.07),
+      Holding(Stock("PBW", Nation.USA), Money(Currency.USD, 79.07), 1),
+      "현금매도",
+      Money(Currency.USD, 0.06),
+      Money(Currency.USD, 0.01)
+    )
+  )
 
   val stringToRecord: Map[Seq[String], TransactionRecord] = Map(
     List(
@@ -562,12 +697,12 @@ object DaishinParserFixture {
       "5"
     )
       -> TransactionRecord.ForeignExchangeBuy(
-      LocalDate.of(2020, 10, 12),
-      "입금",
-      MoneyBag.fromMoneys(Money.krw(-499995), Money.usd(434.62)),
-      1150.42,
-      "외화매수환전"
-    ),
+        LocalDate.of(2020, 10, 12),
+        "입금",
+        MoneyBag.fromMoneys(Money.krw(-499995), Money.usd(434.62)),
+        1150.42,
+        "외화매수환전"
+      ),
     List(
       "2020.11.4",
       "해외증권장내매매",
@@ -597,13 +732,13 @@ object DaishinParserFixture {
       "5"
     )
       -> TransactionRecord.Buy(
-      LocalDate.of(2020, 11, 4),
-      "해외증권장내매매",
-      Money.usd(325),
-      Holding(Stock("IVV", Nation.USA), Money.usd(325), 1),
-      "현금매수",
-      Money.usd(0.26)
-    ),
+        LocalDate.of(2020, 11, 4),
+        "해외증권장내매매",
+        Money.usd(325),
+        Holding(Stock("IVV", Nation.USA), Money.usd(325), 1),
+        "현금매수",
+        Money.usd(0.26)
+      ),
     List(
       "2020.12.22",
       "입금",
@@ -708,39 +843,6 @@ object DaishinParserFixture {
       Money.usd(0.06),
       Money.usd(0.01)
     )
-    //    List(
-    //      "2020.12.17",
-    //      "해외증권장내매매",
-    //      "USD",
-    //      "",
-    //      "",
-    //      "",
-    //      "DKNG",
-    //      "2",
-    //      "2",
-    //      "",
-    //      "",
-    //      "",
-    //      "",
-    //      "2",
-    //      "현금매수",
-    //      "",
-    //      "",
-    //      "",
-    //      "",
-    //      "Draftkings Inc",
-    //      "50.19",
-    //      "",
-    //      "",
-    //      "",
-    //      "808.34",
-    //      "5"
-    //    ) -> TransactionRecord.PartialBuy(
-    //      LocalDate.of(2020, 12, 17),
-    //      "해외증권장내매매",
-    //      Holding(Stock("DKNG", Nation.USA), Money.usd(50.19), 2),
-    //      "현금매수"
-    //    )
   )
 
 }

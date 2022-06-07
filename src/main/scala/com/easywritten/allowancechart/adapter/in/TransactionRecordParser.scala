@@ -275,7 +275,8 @@ object TransactionRecordParser {
   }
 
   // TODO 더 좋은 이름
-  def daishinPreParsing(raw: Map[String, String]): IO[ServiceError, DaishinEntry] = {
+  // TODO ZIO.succeed().get.orElseFail => ZIO.fromOption().orElseFail로 변경
+  def daishinParseStringToEntry(raw: Map[String, String]): IO[ServiceError, DaishinEntry] = {
     val formatter = DateTimeFormatter.ofPattern("yyyy.M.d")
     for {
       dateString <- ZIO.succeed(raw.get("거래일")).get.orElseFail(ServiceError.InternalServerError("`거래일` 존재하지 않음"))
@@ -449,6 +450,78 @@ object TransactionRecordParser {
       }
     } yield merged
   }
+
+  def daishinParseEntryToRecord(entry: DaishinEntry): IO[ServiceError, TransactionRecord] =
+    entry.briefName match {
+      case DaishinBriefName.deposit | DaishinBriefName.depositInterest =>
+        for {
+          amount <- ZIO.fromOption(entry.transactionAmount).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 거래금액 존재하지 않음"))
+        } yield TransactionRecord.Deposit(entry.date, entry.transactionClass, Money.krw(amount), entry.briefName)
+      case DaishinBriefName.fxBuy =>
+        for {
+          currency <- ZIO.fromOption(entry.currency).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 통화 존재하지 않음"))
+          fxCurrency <- ZIO.fromOption(entry.fxCurrency).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 환전 존재하지 않음"))
+          in <- ZIO.fromOption(entry.transactionAmount).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 거래금액 존재하지 않음"))
+          out <- ZIO.fromOption(entry.fxAmount).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 환전금액 존재하지 않음"))
+          exRate <- ZIO.fromOption(entry.depositExRate).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 입금환율 존재하지 않음"))
+        } yield TransactionRecord.ForeignExchangeBuy(
+          entry.date,
+          entry.transactionClass,
+          MoneyBag.fromMoneys(Money(currency, -in), Money(fxCurrency, out)),
+          exRate,
+          entry.briefName
+        )
+      case DaishinBriefName.buy =>
+        for {
+          currency <- ZIO.fromOption(entry.currency).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 통화 존재하지 않음"))
+          totalPrice <- ZIO.fromOption(entry.transactionAmount).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 거래금액 존재하지 않음"))
+          ticker <- ZIO.fromOption(entry.ticker).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 종목코드 존재하지 않음"))
+          unitPrice <- ZIO.fromOption(entry.unitPrice).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 단가 존재하지 않음"))
+          quantity <- ZIO.fromOption(entry.quantity).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 수량 존재하지 않음"))
+          fee <- ZIO.fromOption(entry.fee).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 수수료 존재하지 않음"))
+        } yield TransactionRecord.Buy(
+          entry.date,
+          entry.transactionClass,
+          Money(currency, totalPrice),
+          Holding(Stock(ticker, Nation.fromCurrency(currency)), Money(currency, unitPrice), quantity),
+          entry.briefName,
+          Money(currency, fee)
+        )
+      case DaishinBriefName.sell =>
+        for {
+          currency <- ZIO.fromOption(entry.currency).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 통화 존재하지 않음"))
+          totalPrice <- ZIO.fromOption(entry.transactionAmount).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 거래금액 존재하지 않음"))
+          ticker <- ZIO.fromOption(entry.ticker).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 종목코드 존재하지 않음"))
+          unitPrice <- ZIO.fromOption(entry.unitPrice).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 단가 존재하지 않음"))
+          quantity <- ZIO.fromOption(entry.quantity).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 수량 존재하지 않음"))
+          fee <- ZIO.fromOption(entry.fee).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 수수료 존재하지 않음"))
+          localTax <- ZIO.fromOption(entry.localTax).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 현지세 존재하지 않음"))
+        } yield TransactionRecord.Sell(
+          entry.date,
+          entry.transactionClass,
+          Money(currency, totalPrice),
+          Holding(Stock(ticker, Nation.fromCurrency(currency)), Money.usd(unitPrice), quantity),
+          entry.briefName,
+          Money(currency, fee),
+          Money(currency, localTax)
+        )
+      case DaishinBriefName.dividend =>
+        for {
+          currency <- ZIO.fromOption(entry.currency).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 통화 존재하지 않음"))
+          amount <- ZIO.fromOption(entry.transactionAmount).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 거래금액 존재하지 않음"))
+          ticker <- ZIO.fromOption(entry.ticker).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 종목코드 존재하지 않음"))
+          // TODO 해외주식거래내역밖에 없어서 현지세 데이터만 있어서 국내세가 있는 배당 처리는 보류
+          localTax <- ZIO.fromOption(entry.localTax).orElseFail(ServiceError.InternalServerError(s"${entry.briefName} 처리 중, 현지세 존재하지 않음"))
+        } yield TransactionRecord.Dividend(
+          entry.date,
+          entry.transactionClass,
+          Money(currency, amount),
+          Stock(ticker, Nation.fromCurrency(currency)),
+          entry.briefName,
+          Money(currency, localTax)
+        )
+      case _ => ZIO.fail(ServiceError.InternalServerError(s"지원하지 않는 적요명: ${entry.briefName}"))
+    }
 }
 
 /** @param date 거래일
