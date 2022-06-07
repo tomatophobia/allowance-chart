@@ -21,60 +21,12 @@ object TransactionRecordParserSpec extends DefaultRunnableSpec {
           }
         },
         testM("phase 2. merge partial buy or sell entry") {
-          val dividedBuy = List(
-            DaishinEntry(
-              LocalDate.of(2020, 12, 17),
-              "해외증권장내매매",
-              Some(Currency.USD),
-              Some(200.78),
-              None,
-              Some("DKNG"),
-              Some(2),
-              None,
-              "현금매수",
-              None,
-              None,
-              None,
-              Some(50.2),
-              Some(0.16),
-              None
-          ),
-            DaishinEntry(
-              LocalDate.of(2020, 12, 17),
-              "해외증권장내매매",
-              Some(Currency.USD),
-              None,
-              None,
-              Some("DKNG"),
-              Some(2),
-              None,
-              "현금매수",
-              None,
-              None,
-              None,
-              Some(50.19),
-              None,
-              None
-            )
-          )
-          val expectedBuy = DaishinEntry(
-            LocalDate.of(2020, 12, 17),
-            "해외증권장내매매",
-            Some(Currency.USD),
-            Some(200.78),
-            None,
-            Some("DKNG"),
-            Some(4),
-            None,
-            "현금매수",
-            None,
-            None,
-            None,
-            Some(50.195),
-            Some(0.16),
-            None
-          )
-          assertM(daishinMergePartialBuyOrSell(dividedBuy))(equalTo(expectedBuy))
+          // TODO 실패하는 테스트 케이스도 추가하면 좋긴 할 듯
+          import DaishinParserFixture.mergeEntryTest._
+          for {
+            mergedBuy <- daishinMergePartialBuyOrSell(dividedBuy)
+            mergedSell <- daishinMergePartialBuyOrSell(dividedSell)
+          } yield assert(mergedBuy)(equalTo(expectedBuy)) && assert(mergedSell)(equalTo(expectedSell))
         },
         testM("phase 3. DaishinEntry to TransactionRecord") {
           assertCompletesM

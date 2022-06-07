@@ -425,9 +425,9 @@ object TransactionRecordParser {
     for {
       head <- ZIO.succeed(entries.headOption).get.orElseFail(ServiceError.InternalServerError("합칠 주문이 존재하지 않음"))
       briefName = head.briefName
+      ticker = head.ticker
       merged <- ZIO.foldLeft(entries.drop(1))(head) { (acc, entry) =>
-        if (acc.briefName =!= briefName) ZIO.fail(ServiceError.InternalServerError("합칠 주문의 적요명이 일치하지 않음"))
-        else {
+        if (acc.briefName === briefName && acc.ticker === ticker) {
           val q1 = acc.quantity.getOrElse(0)
           val q2 = entry.quantity.getOrElse(0)
           val p1 = acc.unitPrice.getOrElse(BigDecimal(0))
@@ -440,11 +440,12 @@ object TransactionRecordParser {
             acc.copy(
               quantity = Some(q1 + q2),
               transactionAmount = Some(ta1 + ta2),
-              unitPrice = Some((q1 * p1 + q2 * p2) / (q1 + q2)),
+              unitPrice = Some((q1 * p1 + q2 * p2) / (q1 + q2)), // 반올림 등은 여기서 하지 않고 나중에 Money로 바뀔 때 한다
               fee = Some(f1 + f2)
             )
           )
-        }
+        } else
+          ZIO.fail(ServiceError.InternalServerError("합칠 주문의 적요명이 일치하지 않음"))
       }
     } yield merged
   }
