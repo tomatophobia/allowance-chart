@@ -1,4 +1,4 @@
-package com.easywritten
+package learning
 
 import zio.clock.Clock
 import zio.duration.durationInt

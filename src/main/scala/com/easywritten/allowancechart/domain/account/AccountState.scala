@@ -10,18 +10,18 @@ sealed trait AccountState {
 }
 
 object AccountState {
-  val init: AccountState = PartialAccountState
+  val init: AccountState = IdleAccountState
 }
 
-case object PartialAccountState extends AccountState {
+case object IdleAccountState extends AccountState {
   override def handleEvent(e: AccountEvent): Task[AccountState] = e match {
     case AccountEvent.Initialize(cost) =>
-      Task.succeed(FullAccountState(balance = MoneyBag.empty, holdings = Set(), cost = cost))
+      Task.succeed(ActiveAccountState(balance = MoneyBag.empty, holdings = Set(), cost = cost))
     case _ => impossible
   }
 }
 
-final case class FullAccountState(
+final case class ActiveAccountState(
     balance: MoneyBag,
     holdings: Set[Holding],
     cost: TransactionCost

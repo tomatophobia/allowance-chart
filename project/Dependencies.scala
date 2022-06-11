@@ -74,6 +74,16 @@ object Dependencies {
     val all: Seq[ModuleID] = Seq(core, javaHttpClientBackendZio, asyncHttpClientBackendZio, armeriaBackendZio)
   }
 
+  object circe {
+    private val version = "0.14.1"
+    val core = "io.circe" %% "circe-core" % version
+    val generic = "io.circe" %% "circe-generic" % version
+    val genericExtras = "io.circe" %% "circe-generic-extras" % version
+    val parser = "io.circe" %% "circe-parser" % version
+    val yaml = "io.circe" %% "circe-yaml" % version
+    val all: Seq[ModuleID] = Seq(core, generic, genericExtras, parser, yaml)
+  }
+
   object webjars {
     val adminLTE = "org.webjars" % "AdminLTE" % "3.2.0"
     val plotly = "org.webjars.npm" % "plotly.js-dist-min" % "2.9.0"

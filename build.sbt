@@ -8,11 +8,12 @@ ThisBuild / organizationName := "easywritten"
 lazy val root = (project in file("."))
   .settings(
     name := "allowance-chart",
-    libraryDependencies ++= zio.all ++ cats.all ++ http4s.all ++ tapir.all ++ webjars.all ++ logging.all ++ sttp.all ++
+    libraryDependencies ++= zio.all ++ cats.all ++ http4s.all ++ tapir.all ++ webjars.all ++ logging.all ++ sttp.all ++ circe.all ++
       Seq(
         "com.beachape" %% "enumeratum" % "1.7.0",
         "io.suzaku" %% "boopickle" % "1.4.0",
-        "com.lihaoyi" %% "scalatags" % "0.11.1"
+        "com.lihaoyi" %% "scalatags" % "0.11.1",
+        "com.github.tototoshi" %% "scala-csv" % "1.3.10"
       ),
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
     wartremoverErrors ++= Warts.allBut(
