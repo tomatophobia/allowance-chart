@@ -33,20 +33,7 @@ object TransactionRecordParser {
           .fromIterator(CSVReader.open(file).iterator)
           .grouped(2)
           .map(x => x.foldLeft(Seq[String]())(_ ++ _))
-
-        // TODO 에러를 ServiceError로 다 퉁치는 건 어찌 오케이인데 로깅으로 어떤 에러 메시지가 떴는지 나와야 한다...
-//        (
-//          for {
-//            head <- rawStream.take(1)
-//            body <- rawStream.drop(1)
-//            record <- ZStream.fromEffect(parseDaishin(head, body))
-//          } yield record
-//        ).runCollect.mapBoth[ServiceError, List[TransactionRecord]](
-//          e => ServiceError.InternalServerError("거래내역 파일 파싱 실패", Some(e)),
-//          _.toList
-//        )
-        ???
-
+        parseDaishin(rawStream)
       case SecuritiesCompany.Nonghyup => ???
     }
 

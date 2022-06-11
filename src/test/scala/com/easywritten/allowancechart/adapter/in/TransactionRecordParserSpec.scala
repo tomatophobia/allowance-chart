@@ -43,9 +43,9 @@ object TransactionRecordParserSpec extends DefaultRunnableSpec {
           for {
             file <- ZIO.effect(Paths.get(getClass.getResource("/transaction-files/creon.csv").toURI).toFile)
             transactionRecords <- fromFile(file, SecuritiesCompany.Daishin)
-          } yield assert(transactionRecords)(equalTo(DaishinParserFixture.stringToRecord.values.toList))
+          } yield assert(transactionRecords)(equalTo(List()))
         }
-      ) @@ TestAspect.ignore // TODO
+      ) @@ TestAspect.ignore // TODO 너무 결과가 길어서 그냥 로컬에서 에러 발생하지 않고 실행되는지만 확인하고 있음
     )
   }
 
