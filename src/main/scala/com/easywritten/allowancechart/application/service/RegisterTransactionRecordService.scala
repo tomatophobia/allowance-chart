@@ -1,11 +1,11 @@
 package com.easywritten.allowancechart.application.service
 
 import com.easywritten.allowancechart.application.port.in.{RegisterTransactionRecordPort, TransactionRecord}
-import com.easywritten.allowancechart.domain.SecuritiesCompany
+import com.easywritten.allowancechart.domain.{Asset, SecuritiesCompany}
 import com.easywritten.allowancechart.domain.account.AccountName
 import zio._
 
-final case class RegisterTransactionRecordService() extends RegisterTransactionRecordPort {
+final case class RegisterTransactionRecordService(asset: Asset) extends RegisterTransactionRecordPort {
   override def registerTransactionRecord(
       name: AccountName,
       company: SecuritiesCompany,
@@ -17,6 +17,5 @@ final case class RegisterTransactionRecordService() extends RegisterTransactionR
 }
 
 object RegisterTransactionRecordService {
-  // about lift case class toLayer https://discord.com/channels/629491597070827530/630498701860929559/848905356414287912
-  val layer: ULayer[Has[RegisterTransactionRecordPort]] = (RegisterTransactionRecordService.apply _).toLayer
+  val layer: URLayer[Has[Asset], Has[RegisterTransactionRecordPort]] = (RegisterTransactionRecordService(_)).toLayer
 }

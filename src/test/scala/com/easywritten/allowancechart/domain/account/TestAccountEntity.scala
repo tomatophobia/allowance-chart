@@ -14,7 +14,7 @@ object TestAccountEntity {
   val layer: ZLayer[Clock, TestFailure[Throwable], Has[
     Entity[AccountName, Account, AccountState, AccountEvent, AccountCommandReject]
   ] with Has[TestEntityRuntime.TestEntity[AccountName, Account, AccountState, AccountEvent, AccountCommandReject]]] =
-    (Clock.any ++ TestMemoryStores.make[AccountName, AccountEvent, AccountState](50.millis) >>>
+    (Clock.any and TestMemoryStores.make[AccountName, AccountEvent, AccountState](50.millis) to
       testEntity(
         EventSourcedAccount.tagging,
         EventSourcedBehaviour[Account, AccountState, AccountEvent, AccountCommandReject](

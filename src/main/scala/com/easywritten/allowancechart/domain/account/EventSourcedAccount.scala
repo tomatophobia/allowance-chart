@@ -1,12 +1,24 @@
 package com.easywritten.allowancechart.domain.account
 
 import boopickle.Pickler
-import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, Stock, Ticker, TransactionCost}
+import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, Stock, TransactionCost}
 import zio._
-import zio.entity.core.{Combinators, Fold}
+import zio.clock.Clock
+import zio.duration.durationInt
+import zio.entity.core.{
+  Combinators,
+  Entity,
+  EventSourcedBehaviour,
+  Fold,
+  MemoryStores,
+  Stores,
+  StringEncoder,
+  StringDecoder
+}
 import zio.entity.data.Tagging.Const
 import zio.entity.data.{EntityProtocol, EventTag, Tagging}
 import zio.entity.macros.RpcMacro
+import zio.entity.runtime.akka.Runtime
 
 import java.time.Instant
 
@@ -15,7 +27,7 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
 
   override def initialize(cost: TransactionCost): IO[AccountCommandReject, Unit] = read flatMap {
     case IdleAccountState => append(AccountEvent.Initialize(cost))
-    case _                   => reject(AccountCommandReject.AccountAlreadyInitialized)
+    case _                => reject(AccountCommandReject.AccountAlreadyInitialized)
   }
 
   override def balance: IO[AccountCommandReject, MoneyBag] = ensureFullState map (_.balance)
@@ -61,7 +73,7 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
   private def ensureFullState: IO[AccountCommandReject, ActiveAccountState] =
     read flatMap {
       case state: ActiveAccountState => IO.succeed(state)
-      case IdleAccountState     => reject(AccountCommandReject.AccountNotInitialized)
+      case IdleAccountState          => reject(AccountCommandReject.AccountNotInitialized)
     }
 }
 
@@ -78,4 +90,24 @@ object EventSourcedAccount {
   @SuppressWarnings(Array("org.wartremover.warts.All"))
   implicit val accountProtocol: EntityProtocol[Account, AccountCommandReject] =
     RpcMacro.derive[Account, AccountCommandReject]
+
+  // TODO in-memory말고 postgres로 변경
+  private val stores: ZLayer[Any, Nothing, Has[Stores[AccountName, AccountEvent, AccountState]]] =
+    Clock.live to MemoryStores.make[AccountName, AccountEvent, AccountState](100.millis, 2)
+
+  implicit val accountNameStringEncoder: StringEncoder[AccountName] = s => s.name
+  implicit val accountNameStringDecoder: StringDecoder[AccountName] = n => Some(AccountName(n))
+
+  val accounts: RLayer[ZEnv, Has[Entity[AccountName, Account, AccountState, AccountEvent, AccountCommandReject]]] =
+    (Clock.live and stores and Runtime.actorSettings("Test")) to Runtime
+      .entityLive(
+        "Counter",
+        tagging,
+        EventSourcedBehaviour[Account, AccountState, AccountEvent, AccountCommandReject](
+          new EventSourcedAccount(_),
+          eventHandlerLogic,
+          AccountCommandReject.FromThrowable
+        )
+      )
+      .toLayer
 }

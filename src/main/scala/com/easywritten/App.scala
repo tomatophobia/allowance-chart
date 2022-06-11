@@ -19,9 +19,6 @@ import zio.blocking.Blocking
 
 object App extends zio.App {
 
-  type EndpointEnv = TransactionRecordEndpoints.Env
-  type AppEnv = Clock with EndpointEnv
-
   private val serverRoutes: HttpRoutes[RIO[AppEnv, *]] =
     ZHttp4sServerInterpreter().from(TransactionRecordEndpoints.all).toRoutes
 
@@ -61,7 +58,7 @@ object App extends zio.App {
 
     } yield serve)
       .use(_ => ZIO.never)
-      .provideCustomLayer(RegisterTransactionRecordService.layer)
+      .provideCustomLayer(appLayers)
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = program.exitCode
 }
