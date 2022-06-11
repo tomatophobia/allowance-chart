@@ -2,6 +2,7 @@ package com.easywritten.allowancechart.adapter.in
 
 import com.easywritten.allowancechart.domain.SecuritiesCompany
 import zio._
+import zio.stream.ZStream
 import zio.test._
 import zio.test.Assertion._
 
@@ -14,7 +15,7 @@ object TransactionRecordParserSpec extends DefaultRunnableSpec {
       suite("parse Daishin")(
         testM("phase 1. String to DaishinEntry") {
           ZIO.foldLeft(DaishinParserFixture.stringToEntry)(assertCompletes) { case (acc, (raw, expected)) =>
-            val entry = daishinParseStringToEntry(DaishinParserFixture.schema.zip(raw).toMap)
+            val entry = daishinParseStringToEntry(DaishinParserFixture.schema, raw)
             assertM(entry)(equalTo(expected)).map(_ && acc)
           }
         },
@@ -33,11 +34,9 @@ object TransactionRecordParserSpec extends DefaultRunnableSpec {
           }
         },
         testM("whole process") {
-          ZIO.foldLeft(DaishinParserFixture.stringToRecord)(assertCompletes) { case (acc, (raw, expected)) =>
-            val record = parseDaishin(DaishinParserFixture.schema, raw)
-            assertM(record)(equalTo(expected)).map(_ && acc)
-          }
-        }
+          import DaishinParserFixture.wholeProcessTest._
+          assertM(parseDaishin(ZStream.fromIterable(DaishinParserFixture.schema :: rawString)))(equalTo(records))
+        },
       ),
       suite("parse transaction record file")(
         testM("Daishin") {
