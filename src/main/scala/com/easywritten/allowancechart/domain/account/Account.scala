@@ -20,17 +20,17 @@ trait Account {
   def netValue: IO[AccountCommandReject, MoneyBag]
 
   @Id(5)
-  def deposit(money: Money): IO[AccountCommandReject, Unit]
+  def deposit(money: Money, at: Instant): IO[AccountCommandReject, Unit]
 
   @Id(6)
-  def withdraw(money: Money): IO[AccountCommandReject, Unit]
+  def withdraw(money: Money, at: Instant): IO[AccountCommandReject, Unit]
 
   @Id(7)
   def buy(
       stock: Stock,
       unitPrice: Money,
       quantity: Int,
-      contractedAt: Instant
+      at: Instant
   ): IO[AccountCommandReject, Unit]
 
   @Id(8)
@@ -38,7 +38,7 @@ trait Account {
       stock: Stock,
       contractPrice: Money,
       quantity: Int,
-      contractedAt: Instant
+      at: Instant
   ): IO[AccountCommandReject, Unit]
 
 }

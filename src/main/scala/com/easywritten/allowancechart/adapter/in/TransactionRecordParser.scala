@@ -379,7 +379,7 @@ object TransactionRecordParser {
   * @param localTax 현지세
   */
 final case class DaishinEntry(
-    date: LocalDate,
+    date: LocalDate, // TODO Instant로 변경
     transactionClass: String,
     currency: Option[Currency],
     transactionAmount: Option[BigDecimal],

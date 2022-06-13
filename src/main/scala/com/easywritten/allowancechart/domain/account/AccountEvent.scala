@@ -10,11 +10,11 @@ sealed trait AccountEvent
 object AccountEvent {
   final case class Initialize(company: SecuritiesCompany) extends AccountEvent
 
-  final case class Deposit(money: Money) extends AccountEvent
+  final case class Deposit(money: Money, at: Instant) extends AccountEvent
 
-  final case class Withdrawal(money: Money) extends AccountEvent
+  final case class Withdrawal(money: Money, at: Instant) extends AccountEvent
 
-  final case class Buy(stock: Stock, unitPrice: Money, quantity: Int, contractedAt: Instant) extends AccountEvent
+  final case class Buy(stock: Stock, unitPrice: Money, quantity: Int, at: Instant) extends AccountEvent
 
-  final case class Sell(stock: Stock, contractPrice: Money, quantity: Int, contractedAt: Instant) extends AccountEvent
+  final case class Sell(stock: Stock, contractPrice: Money, quantity: Int, at: Instant) extends AccountEvent
 }

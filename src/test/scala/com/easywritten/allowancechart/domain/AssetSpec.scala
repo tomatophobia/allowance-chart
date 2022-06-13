@@ -39,18 +39,18 @@ object AssetSpec extends DefaultRunnableSpec {
         _ <- acc1.initialize(SecuritiesCompany.Daishin)
         _ <- acc2.initialize(SecuritiesCompany.Daishin)
 
-        _ <- acc1.deposit(Money.usd(123.45))
+        _ <- acc1.deposit(Money.usd(123.45), now)
         _ <- acc1.buy(apple, Money.usd(32.23), 2, now)
         _ <- acc1.sell(apple, Money.usd(47.79), 1, now)
-        _ <- acc1.withdraw(Money.usd(51.32))
+        _ <- acc1.withdraw(Money.usd(51.32), now)
         balance1 <- acc1.balance
         holdings1 <- acc1.holdings
         netValue1 <- acc1.netValue
 
-        _ <- acc2.deposit(Money.krw(300000))
+        _ <- acc2.deposit(Money.krw(300000), now)
         _ <- acc2.buy(samsung, Money.krw(78240), 3, now)
         _ <- acc2.sell(samsung, Money.krw(65490), 1, now)
-        _ <- acc2.withdraw(Money.krw(34509))
+        _ <- acc2.withdraw(Money.krw(34509), now)
         balance2 <- acc2.balance
         holdings2 <- acc2.holdings
         netValue2 <- acc2.netValue

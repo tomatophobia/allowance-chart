@@ -46,8 +46,8 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
             account = accountEntity(key)
             _ <- account.initialize(SecuritiesCompany.Daishin)
 
-            _ <- account.deposit(Money.krw(1000000))
-            _ <- account.deposit(Money.usd(1000))
+            _ <- account.deposit(Money.krw(1000000), now)
+            _ <- account.deposit(Money.usd(1000), now)
 
             _ <- account.buy(apple, Money.usd(167.2), 2, now)
             _ <- account.buy(apple, Money.usd(173.7), 3, now)
@@ -76,7 +76,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
             account = accountEntity(key)
             _ <- account.initialize(SecuritiesCompany.Daishin)
 
-            _ <- account.deposit(Money.usd(1000))
+            _ <- account.deposit(Money.usd(1000), now)
             failure <- account.buy(apple, Money.usd(167.2), 10, now).run
           } yield {
             assert(failure)(fails(equalTo(AccountCommandReject.InsufficientBalance("Buying failed"))))
@@ -103,8 +103,8 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
             account = accountEntity(key)
             _ <- account.initialize(SecuritiesCompany.Daishin)
 
-            _ <- account.deposit(Money.krw(1000000))
-            _ <- account.deposit(Money.usd(1000))
+            _ <- account.deposit(Money.krw(1000000), now)
+            _ <- account.deposit(Money.usd(1000), now)
             _ <- account.buy(apple, Money.usd(167.3), 5, now)
             _ <- account.buy(samsung, Money.krw(71200), 7, now) // Samsung Electronics
 
@@ -134,7 +134,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
             account = accountEntity(key)
             _ <- account.initialize(SecuritiesCompany.Daishin)
 
-            _ <- account.deposit(Money.usd(1000))
+            _ <- account.deposit(Money.usd(1000), now)
             _ <- account.buy(apple, Money.usd(167.2), 5, now)
             failure <- account.sell(apple, Money.usd(167.2), 7, now).run
           } yield {
@@ -157,7 +157,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
             ]
             account = accountEntity(key)
             _ <- account.initialize(SecuritiesCompany.Daishin)
-            _ <- account.deposit(Money.usd(1000))
+            _ <- account.deposit(Money.usd(1000), now)
             _ <- account.buy(apple, Money.usd(167.2), 5, now)
             _ <- account.sell(apple, Money.usd(167.2), 5, now)
 
@@ -195,8 +195,8 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
 
             _ <- account.initialize(SecuritiesCompany.Daishin)
 
-            _ <- account.deposit(Money.krw(1000000))
-            _ <- account.deposit(Money.usd(1000))
+            _ <- account.deposit(Money.krw(1000000), now)
+            _ <- account.deposit(Money.usd(1000), now)
 
             _ <- account.buy(apple, Money.usd(167.2), 2, now)
             _ <- account.buy(apple, Money.usd(173.7), 3, now)

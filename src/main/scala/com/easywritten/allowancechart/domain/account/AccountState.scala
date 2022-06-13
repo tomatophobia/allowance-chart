@@ -34,9 +34,9 @@ final case class ActiveAccountState(
   }
 
   override def handleEvent(e: AccountEvent): Task[AccountState] = e match {
-    case AccountEvent.Deposit(money) => Task.succeed(copy(balance = balance + money))
+    case AccountEvent.Deposit(money, _) => Task.succeed(copy(balance = balance + money))
 
-    case AccountEvent.Withdrawal(money) => Task.succeed(copy(balance = balance - money))
+    case AccountEvent.Withdrawal(money, _) => Task.succeed(copy(balance = balance - money))
 
     case AccountEvent.Buy(stock, unitPrice, quantity, _) =>
       val totalAmount = unitPrice * quantity

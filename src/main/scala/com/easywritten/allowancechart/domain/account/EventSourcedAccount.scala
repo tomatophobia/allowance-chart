@@ -36,13 +36,13 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
 
   override def netValue: IO[AccountCommandReject, MoneyBag] = ensureFullState map (_.netValue)
 
-  override def deposit(money: Money): IO[AccountCommandReject, Unit] = ensureFullState flatMap { _ =>
-    append(AccountEvent.Deposit(money))
+  override def deposit(money: Money, at: Instant): IO[AccountCommandReject, Unit] = ensureFullState flatMap { _ =>
+    append(AccountEvent.Deposit(money, at))
   }
 
-  override def withdraw(money: Money): IO[AccountCommandReject, Unit] = ensureFullState flatMap { state =>
+  override def withdraw(money: Money, at: Instant): IO[AccountCommandReject, Unit] = ensureFullState flatMap { state =>
     if (state.balance.canAfford(MoneyBag.fromMoneys(money)))
-      append(AccountEvent.Withdrawal(money))
+      append(AccountEvent.Withdrawal(money, at))
     else reject(AccountCommandReject.InsufficientBalance("Withdrawal failed"))
   }
 
@@ -50,11 +50,11 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
       stock: Stock,
       unitPrice: Money,
       quantity: Int,
-      contractedAt: Instant
+      at: Instant
   ): IO[AccountCommandReject, Unit] =
     ensureFullState flatMap { state =>
       if (state.balance.canAfford(MoneyBag.fromMoneys(unitPrice * quantity)))
-        append(AccountEvent.Buy(stock, unitPrice, quantity, contractedAt))
+        append(AccountEvent.Buy(stock, unitPrice, quantity, at))
       else reject(AccountCommandReject.InsufficientBalance("Buying failed"))
     }
 
@@ -62,11 +62,11 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
       stock: Stock,
       contractPrice: Money,
       quantity: Int,
-      contractedAt: Instant
+      at: Instant
   ): IO[AccountCommandReject, Unit] =
     ensureFullState flatMap { state =>
       if (state.getQuantityByStock(stock) >= quantity)
-        append(AccountEvent.Sell(stock, contractPrice, quantity, contractedAt))
+        append(AccountEvent.Sell(stock, contractPrice, quantity, at))
       else reject(AccountCommandReject.InsufficientShares("Selling failed"))
     }
 
