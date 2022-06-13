@@ -36,8 +36,8 @@ object AssetSpec extends DefaultRunnableSpec {
         asset <- ZIO.service[Asset]
         acc1 = asset.accounts(accountName1)
         acc2 = asset.accounts(accountName2)
-        _ <- acc1.initialize(TransactionCost.zero)
-        _ <- acc2.initialize(TransactionCost.zero)
+        _ <- acc1.initialize(SecuritiesCompany.Daishin)
+        _ <- acc2.initialize(SecuritiesCompany.Daishin)
 
         _ <- acc1.deposit(Money.usd(123.45))
         _ <- acc1.buy(apple, Money.usd(32.23), 2, now)

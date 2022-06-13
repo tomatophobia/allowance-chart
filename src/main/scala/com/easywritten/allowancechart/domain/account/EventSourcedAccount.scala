@@ -1,7 +1,7 @@
 package com.easywritten.allowancechart.domain.account
 
 import boopickle.Pickler
-import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, Stock, TransactionCost}
+import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, SecuritiesCompany, Stock}
 import zio._
 import zio.clock.Clock
 import zio.duration.durationInt
@@ -25,8 +25,8 @@ import java.time.Instant
 class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, AccountCommandReject]) extends Account {
   import combinators._
 
-  override def initialize(cost: TransactionCost): IO[AccountCommandReject, Unit] = read flatMap {
-    case IdleAccountState => append(AccountEvent.Initialize(cost))
+  override def initialize(company: SecuritiesCompany): IO[AccountCommandReject, Unit] = read flatMap {
+    case IdleAccountState => append(AccountEvent.Initialize(company))
     case _                => reject(AccountCommandReject.AccountAlreadyInitialized)
   }
 
@@ -48,13 +48,13 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
 
   override def buy(
       stock: Stock,
-      averagePrice: Money,
+      unitPrice: Money,
       quantity: Int,
       contractedAt: Instant
   ): IO[AccountCommandReject, Unit] =
     ensureFullState flatMap { state =>
-      if (state.balance.canAfford(MoneyBag.fromMoneys(averagePrice * quantity)))
-        append(AccountEvent.Buy(stock, averagePrice, quantity, contractedAt))
+      if (state.balance.canAfford(MoneyBag.fromMoneys(unitPrice * quantity)))
+        append(AccountEvent.Buy(stock, unitPrice, quantity, contractedAt))
       else reject(AccountCommandReject.InsufficientBalance("Buying failed"))
     }
 

@@ -1,6 +1,6 @@
 package com.easywritten.allowancechart.domain.account
 
-import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, Stock, Ticker, TransactionCost}
+import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, SecuritiesCompany, Stock}
 import zio._
 import zio.entity.annotations.Id
 
@@ -8,7 +8,7 @@ import java.time.Instant
 
 trait Account {
   @Id(1)
-  def initialize(cost: TransactionCost): IO[AccountCommandReject, Unit]
+  def initialize(company: SecuritiesCompany): IO[AccountCommandReject, Unit]
 
   @Id(2)
   def balance: IO[AccountCommandReject, MoneyBag]
@@ -28,7 +28,7 @@ trait Account {
   @Id(7)
   def buy(
       stock: Stock,
-      averagePrice: Money,
+      unitPrice: Money,
       quantity: Int,
       contractedAt: Instant
   ): IO[AccountCommandReject, Unit]

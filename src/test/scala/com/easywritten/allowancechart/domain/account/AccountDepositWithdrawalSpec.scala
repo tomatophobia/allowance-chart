@@ -1,7 +1,7 @@
 package com.easywritten.allowancechart.domain.account
 
 import com.easywritten.allowancechart.domain.account.Assertion.compareMoneyBag
-import com.easywritten.allowancechart.domain.{Currency, Money, MoneyBag, TransactionCost}
+import com.easywritten.allowancechart.domain.{Currency, Money, MoneyBag, SecuritiesCompany, TransactionCost}
 import zio.entity.test.TestEntityRuntime._
 import zio.test._
 import zio.test.Assertion._
@@ -25,7 +25,7 @@ object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
             AccountCommandReject
           ]
           account = accountEntity(key)
-          _ <- account.initialize(TransactionCost.zero)
+          _ <- account.initialize(SecuritiesCompany.Daishin)
 
           _ <- account.deposit(moneys(0))
           _ <- account.deposit(moneys(1))
@@ -36,7 +36,9 @@ object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
           netValue <- account.netValue
         } yield {
           assert(events)(
-            equalTo(AccountEvent.Initialize(TransactionCost.zero) :: moneys.map[AccountEvent](AccountEvent.Deposit))
+            equalTo(
+              AccountEvent.Initialize(SecuritiesCompany.Daishin) :: moneys.map[AccountEvent](AccountEvent.Deposit)
+            )
           ) &&
           compareMoneyBag(balance, expectedBalance) &&
           compareMoneyBag(netValue, expectedBalance)
@@ -56,7 +58,7 @@ object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
             AccountCommandReject
           ]
           account = accountEntity(key)
-          _ <- account.initialize(TransactionCost.zero)
+          _ <- account.initialize(SecuritiesCompany.Daishin)
 
           _ <- account.deposit(Money.usd(1000))
           _ <- account.deposit(Money.krw(1000000))
@@ -83,7 +85,7 @@ object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
             AccountCommandReject
           ]
           account = accountEntity(key)
-          _ <- account.initialize(TransactionCost.zero)
+          _ <- account.initialize(SecuritiesCompany.Daishin)
 
           _ <- account.deposit(Money.usd(100))
           failure <- account.withdraw(Money.usd(123.12)).run

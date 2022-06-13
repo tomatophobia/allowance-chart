@@ -19,7 +19,7 @@ object Nation extends Enum[Nation] {
       case Currency.KRW => KOR
       case Currency.JPY => JPN
       case Currency.CNY => CHN
-      case _ => ??? // TOOD 임시로 만들기
+      case _            => ??? // TOOD 임시로 만들기
     }
 
   override def values: IndexedSeq[Nation] = findValues

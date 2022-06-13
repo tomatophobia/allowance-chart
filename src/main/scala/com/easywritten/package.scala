@@ -16,7 +16,8 @@ package object easywritten {
   // TODO 컴포넌트 많아지면 type alias들 추가하기
   val domainLayers: RLayer[ZEnv, Has[Asset]] = (EventSourcedAccount.accounts to Asset.layer)
 
-  val applicationServiceLayers: URLayer[Has[Asset], Has[RegisterTransactionRecordPort]] = RegisterTransactionRecordService.layer
+  val applicationServiceLayers: URLayer[Has[Asset], Has[RegisterTransactionRecordPort]] =
+    RegisterTransactionRecordService.layer
 
   val appLayers: RLayer[ZEnv, Has[RegisterTransactionRecordPort]] = domainLayers to applicationServiceLayers
 

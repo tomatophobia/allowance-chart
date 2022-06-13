@@ -1,7 +1,7 @@
 package com.easywritten.allowancechart.domain.account
 
 import cats.implicits._
-import com.easywritten.allowancechart.domain.{Holding, MoneyBag, Stock, Ticker, TransactionCost}
+import com.easywritten.allowancechart.domain.{Holding, MoneyBag, SecuritiesCompany, Stock, Ticker, TransactionCost}
 import zio.entity.core.Fold.impossible
 import zio._
 
@@ -15,16 +15,16 @@ object AccountState {
 
 case object IdleAccountState extends AccountState {
   override def handleEvent(e: AccountEvent): Task[AccountState] = e match {
-    case AccountEvent.Initialize(cost) =>
-      Task.succeed(ActiveAccountState(balance = MoneyBag.empty, holdings = Set(), cost = cost))
+    case AccountEvent.Initialize(company) =>
+      Task.succeed(ActiveAccountState(company = company, balance = MoneyBag.empty, holdings = Set()))
     case _ => impossible
   }
 }
 
 final case class ActiveAccountState(
+    company: SecuritiesCompany,
     balance: MoneyBag,
-    holdings: Set[Holding],
-    cost: TransactionCost
+    holdings: Set[Holding]
 ) extends AccountState {
   def getQuantityByStock(stock: Stock): Int =
     holdings.find(_.stock === stock).map(_.quantity).getOrElse(0)
@@ -38,26 +38,26 @@ final case class ActiveAccountState(
 
     case AccountEvent.Withdrawal(money) => Task.succeed(copy(balance = balance - money))
 
-    case AccountEvent.Buy(stock, averagePrice, quantity, _) =>
-      val totalAmount = averagePrice * quantity
+    case AccountEvent.Buy(stock, unitPrice, quantity, _) =>
+      val totalAmount = unitPrice * quantity
       val nextHoldings = holdings.find(_.stock === stock) match {
         case Some(h) =>
           val nextQuantity = h.quantity + quantity
-          val nextAveragePrice = ((h.unitPrice * h.quantity) unsafe_+ totalAmount) / nextQuantity
-          val nextHolding = h.copy(unitPrice = nextAveragePrice, quantity = nextQuantity)
+          val nextUnitPrice = ((h.unitPrice * h.quantity) unsafe_+ totalAmount) / nextQuantity
+          val nextHolding = h.copy(unitPrice = nextUnitPrice, quantity = nextQuantity)
           holdings map {
             case h if h.stock === stock => nextHolding
             case h                      => h
           }
 
         case None =>
-          val nextHolding = Holding(stock, averagePrice, quantity)
+          val nextHolding = Holding(stock, unitPrice, quantity)
           holdings + nextHolding
       }
 
       Task.succeed(
         copy(
-          balance = balance - totalAmount - totalAmount * cost.buy,
+          balance = balance - totalAmount,
           holdings = nextHoldings
         )
       )
@@ -70,7 +70,7 @@ final case class ActiveAccountState(
         case Some(nextHolding) if nextHolding.quantity > 0 =>
           Task.succeed(
             copy(
-              balance = balance + totalAmount - totalAmount * cost.sell,
+              balance = balance + totalAmount,
               holdings = holdings collect {
                 case h if h.stock === stock => nextHolding
                 case h                      => h
@@ -80,7 +80,7 @@ final case class ActiveAccountState(
         case Some(nextHolding) if nextHolding.quantity === 0 =>
           Task.succeed(
             copy(
-              balance = balance + totalAmount - totalAmount * cost.sell,
+              balance = balance + totalAmount,
               holdings = holdings.filter(_.stock =!= stock)
             )
           )
