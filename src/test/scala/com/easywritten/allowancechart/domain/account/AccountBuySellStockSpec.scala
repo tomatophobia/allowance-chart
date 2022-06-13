@@ -16,13 +16,14 @@ import zio.clock.Clock
 import zio.entity.test.TestEntityRuntime._
 import zio.test.Assertion._
 import zio.test._
+import zio.test.environment.TestEnvironment
 
 object AccountBuySellStockSpec extends DefaultRunnableSpec {
 
   val apple: Stock = Stock("AAPL", Nation.USA)
   val samsung: Stock = Stock("005930", Nation.KOR)
 
-  override def spec: ZSpec[Environment, Failure] = {
+  override def spec: ZSpec[TestEnvironment, Any] = {
     suite("AccountBuySellStockSpec")(
       suite("BuySellWithoutCost")(
         testM("Buy stock") {

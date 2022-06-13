@@ -3,9 +3,10 @@ package com.easywritten.allowancechart.domain
 import zio._
 import zio.test._
 import zio.test.Assertion._
+import zio.test.environment.TestEnvironment
 
 object StockSpec extends DefaultRunnableSpec {
-  override def spec: ZSpec[Environment, Failure] = suite("StockSpec")(
+  override def spec: ZSpec[TestEnvironment, Any] = suite("StockSpec")(
     test("Stock has symbol, market") {
       val apple = Stock("AAPL", Nation.USA)
       val samsung = Stock("005930", Nation.KOR)

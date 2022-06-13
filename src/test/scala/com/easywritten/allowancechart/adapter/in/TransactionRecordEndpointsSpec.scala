@@ -14,13 +14,14 @@ import sttp.tapir.server.stub.RichSttpBackendStub
 import zio._
 import zio.test._
 import zio.test.Assertion._
+import zio.test.environment.TestEnvironment
 
 import java.nio.file.Paths
 
 object TransactionRecordEndpointsSpec extends DefaultRunnableSpec {
   import TransactionRecordEndpoints._
 
-  override def spec: ZSpec[Environment, Failure] =
+  override def spec: ZSpec[TestEnvironment, Any] =
     suite("TransactionRecordEndpointsSpec")(
       testM("register page returns status code 200 with html string") {
         val zioBackendStub = SttpBackendStub[RIO[Env, *], WebSockets with ZioStreams](new RIOMonadAsyncError[Env])

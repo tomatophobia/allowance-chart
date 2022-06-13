@@ -3,9 +3,10 @@ package com.easywritten.allowancechart.domain
 import zio._
 import zio.test.Assertion._
 import zio.test._
+import zio.test.environment.TestEnvironment
 
 object MoneyBagSpec extends DefaultRunnableSpec {
-  override def spec: ZSpec[Environment, Failure] =
+  override def spec: ZSpec[TestEnvironment, Any] =
     suite("MoneyBagSpec") {
       test("MoneyBag can merge several Money instance") {
         val m1 = Money(Currency.USD, 123.35)

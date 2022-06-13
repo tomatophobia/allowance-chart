@@ -5,12 +5,13 @@ import zio._
 import zio.stream.ZStream
 import zio.test._
 import zio.test.Assertion._
+import zio.test.environment.TestEnvironment
 
 import java.nio.file.Paths
 
 object TransactionRecordParserSpec extends DefaultRunnableSpec {
   import TransactionRecordParser._
-  override def spec: ZSpec[Environment, Failure] = {
+  override def spec: ZSpec[TestEnvironment, Any] = {
     suite("TransactionRecordParserSpec")(
       suite("parse Daishin")(
         testM("phase 1. String to DaishinEntry") {

@@ -7,9 +7,10 @@ import zio.clock.Clock
 import zio.entity.test.TestEntityRuntime._
 import zio.test._
 import zio.test.Assertion._
+import zio.test.environment.TestEnvironment
 
 object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
-  override def spec: ZSpec[Environment, Failure] =
+  override def spec: ZSpec[TestEnvironment, Any] =
     suite("AccountDepositWithdrawalSpec")(
       testM("Deposit money into Account several times") {
         val key = AccountName("key")

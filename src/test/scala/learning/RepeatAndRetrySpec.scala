@@ -5,12 +5,12 @@ import zio._
 import zio.clock.Clock
 import zio.duration._
 import zio.test._
-import zio.test.environment.Live
+import zio.test.environment.{Live, TestEnvironment}
 
 @SuppressWarnings(Array("org.wartremover.warts.Serializable", "org.wartremover.warts.JavaSerializable"))
 object RepeatAndRetrySpec extends DefaultRunnableSpec {
 
-  override def spec: ZSpec[Environment, Failure] =
+  override def spec: ZSpec[TestEnvironment, Any] =
     suite("RepeatAndRetrySpec")(
       testM("retry") {
         for {

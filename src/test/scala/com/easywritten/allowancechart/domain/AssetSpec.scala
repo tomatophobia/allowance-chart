@@ -6,13 +6,14 @@ import zio._
 import zio.clock.Clock
 import zio.test._
 import zio.test.Assertion._
+import zio.test.environment.TestEnvironment
 
 object AssetSpec extends DefaultRunnableSpec {
 
   val apple: Stock = Stock("AAPL", Nation.USA)
   val samsung: Stock = Stock("005930", Nation.KOR)
 
-  override def spec: ZSpec[Environment, Failure] = suite("AssetSpec")(
+  override def spec: ZSpec[TestEnvironment, Any] = suite("AssetSpec")(
     testM("Asset can be changed by adding transaction information") {
       val accountName1 = AccountName("대신증권")
       val accountName2 = AccountName("NH투자증권")
