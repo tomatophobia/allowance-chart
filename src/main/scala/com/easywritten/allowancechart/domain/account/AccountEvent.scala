@@ -17,4 +17,6 @@ object AccountEvent {
   final case class Buy(stock: Stock, unitPrice: Money, quantity: Int, at: Instant) extends AccountEvent
 
   final case class Sell(stock: Stock, contractPrice: Money, quantity: Int, at: Instant) extends AccountEvent
+
+  final case class DividendPaid(stock: Stock, amount: Money, tax: Money, at: Instant) extends AccountEvent
 }

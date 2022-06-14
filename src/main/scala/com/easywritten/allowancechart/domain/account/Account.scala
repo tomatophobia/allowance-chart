@@ -41,4 +41,12 @@ trait Account {
       at: Instant
   ): IO[AccountCommandReject, Unit]
 
+  @Id(9)
+  def dividendPaid(
+      stock: Stock,
+      amount: Money,
+      tax: Money,
+      at: Instant
+  ): IO[AccountCommandReject, Unit]
+
 }

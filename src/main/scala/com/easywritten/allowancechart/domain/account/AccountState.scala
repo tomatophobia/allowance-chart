@@ -87,6 +87,10 @@ final case class ActiveAccountState(
         case _ => impossible
       }
 
+    case AccountEvent.DividendPaid(stock, amount, tax, _) =>
+      // TODO 배당금을 따로 모아서 관리...
+      Task.succeed(copy(balance = balance + amount - tax))
+
     case _ => impossible
   }
 }

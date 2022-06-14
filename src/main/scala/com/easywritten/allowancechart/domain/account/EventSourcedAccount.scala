@@ -70,6 +70,9 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
       else reject(AccountCommandReject.InsufficientShares("Selling failed"))
     }
 
+  override def dividendPaid(stock: Stock, amount: Money, tax: Money, at: Instant): IO[AccountCommandReject, Unit] =
+    ensureFullState flatMap (_ => append(AccountEvent.DividendPaid(stock, amount, tax, at)))
+
   private def ensureFullState: IO[AccountCommandReject, ActiveAccountState] =
     read flatMap {
       case state: ActiveAccountState => IO.succeed(state)
