@@ -30,13 +30,13 @@ final case class ActiveAccountState(
     holdings.find(_.stock === stock).map(_.quantity).getOrElse(0)
 
   def netValue: MoneyBag = holdings.foldLeft(balance) { case (acc, holding) =>
-    acc + holding.unitPrice * holding.quantity
+    acc.add(holding.unitPrice * holding.quantity)
   }
 
   override def handleEvent(e: AccountEvent): Task[AccountState] = e match {
-    case AccountEvent.Deposit(money, _) => Task.succeed(copy(balance = balance + money))
+    case AccountEvent.Deposit(money, _) => Task.succeed(copy(balance = balance.add(money)))
 
-    case AccountEvent.Withdrawal(money, _) => Task.succeed(copy(balance = balance - money))
+    case AccountEvent.Withdrawal(money, _) => Task.succeed(copy(balance = balance.subtract(money)))
 
     case AccountEvent.Buy(stock, unitPrice, quantity, _) =>
       val totalAmount = unitPrice * quantity
@@ -57,7 +57,7 @@ final case class ActiveAccountState(
 
       Task.succeed(
         copy(
-          balance = balance - totalAmount,
+          balance = balance.subtract(totalAmount),
           holdings = nextHoldings
         )
       )
@@ -70,7 +70,7 @@ final case class ActiveAccountState(
         case Some(nextHolding) if nextHolding.quantity > 0 =>
           Task.succeed(
             copy(
-              balance = balance + totalAmount,
+              balance = balance.add(totalAmount),
               holdings = holdings collect {
                 case h if h.stock === stock => nextHolding
                 case h                      => h
@@ -80,16 +80,19 @@ final case class ActiveAccountState(
         case Some(nextHolding) if nextHolding.quantity === 0 =>
           Task.succeed(
             copy(
-              balance = balance + totalAmount,
+              balance = balance.add(totalAmount),
               holdings = holdings.filter(_.stock =!= stock)
             )
           )
         case _ => impossible
       }
 
-    case AccountEvent.DividendPaid(stock, amount, tax, _) =>
+    case AccountEvent.DividendPaid(_, amount, tax, _) =>
       // TODO 배당금을 따로 모아서 관리...
-      Task.succeed(copy(balance = balance + amount - tax))
+      Task.succeed(copy(balance = balance.add(amount).subtract(tax)))
+
+    case AccountEvent.ForeignExchangeBuy(fx, _, _) =>
+      Task.succeed(copy(balance = balance + fx))
 
     case _ => impossible
   }

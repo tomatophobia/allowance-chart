@@ -17,7 +17,7 @@ object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
 
         val moneys: List[Money] = List(Money.usd(123.12), Money.usd(456.45), Money.krw(12519), Money.krw(56947))
 
-        val expectedBalance: MoneyBag = moneys.foldLeft(MoneyBag.empty)(_ + _)
+        val expectedBalance: MoneyBag = moneys.foldLeft(MoneyBag.empty)(_.add(_))
 
         for {
           now <- ZIO.accessM[Clock](_.get.currentDateTime.map(_.toInstant))

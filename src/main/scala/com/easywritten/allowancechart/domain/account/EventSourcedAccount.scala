@@ -73,6 +73,13 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
   override def dividendPaid(stock: Stock, amount: Money, tax: Money, at: Instant): IO[AccountCommandReject, Unit] =
     ensureFullState flatMap (_ => append(AccountEvent.DividendPaid(stock, amount, tax, at)))
 
+  override def foreignExchangeBuy(
+      exchange: MoneyBag,
+      exchangeRate: BigDecimal,
+      at: Instant
+  ): IO[AccountCommandReject, Unit] =
+    ensureFullState flatMap (_ => append(AccountEvent.ForeignExchangeBuy(exchange, exchangeRate, at)))
+
   private def ensureFullState: IO[AccountCommandReject, ActiveAccountState] =
     read flatMap {
       case state: ActiveAccountState => IO.succeed(state)

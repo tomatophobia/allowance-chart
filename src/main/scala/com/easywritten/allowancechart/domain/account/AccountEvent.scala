@@ -1,6 +1,6 @@
 package com.easywritten.allowancechart.domain.account
 
-import com.easywritten.allowancechart.domain.{Money, SecuritiesCompany, Stock}
+import com.easywritten.allowancechart.domain.{Money, MoneyBag, SecuritiesCompany, Stock}
 
 import java.time.Instant
 
@@ -19,4 +19,6 @@ object AccountEvent {
   final case class Sell(stock: Stock, contractPrice: Money, quantity: Int, at: Instant) extends AccountEvent
 
   final case class DividendPaid(stock: Stock, amount: Money, tax: Money, at: Instant) extends AccountEvent
+
+  final case class ForeignExchangeBuy(exchange: MoneyBag, exchangeRate: BigDecimal, at: Instant) extends AccountEvent
 }

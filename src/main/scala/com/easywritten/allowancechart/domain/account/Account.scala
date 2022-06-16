@@ -49,4 +49,11 @@ trait Account {
       at: Instant
   ): IO[AccountCommandReject, Unit]
 
+  @Id(10)
+  def foreignExchangeBuy(
+      exchange: MoneyBag,
+      exchangeRate: BigDecimal,
+      at: Instant
+  ): IO[AccountCommandReject, Unit]
+
 }
