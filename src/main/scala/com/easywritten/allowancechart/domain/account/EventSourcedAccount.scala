@@ -1,21 +1,33 @@
 package com.easywritten.allowancechart.domain.account
 
 import boopickle.Pickler
-import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, Stock, Ticker, TransactionCost}
+import com.easywritten.allowancechart.domain.{Holding, Money, MoneyBag, SecuritiesCompany, Stock}
 import zio._
-import zio.entity.core.{Combinators, Fold}
+import zio.clock.Clock
+import zio.duration.durationInt
+import zio.entity.core.{
+  Combinators,
+  Entity,
+  EventSourcedBehaviour,
+  Fold,
+  MemoryStores,
+  Stores,
+  StringEncoder,
+  StringDecoder
+}
 import zio.entity.data.Tagging.Const
 import zio.entity.data.{EntityProtocol, EventTag, Tagging}
 import zio.entity.macros.RpcMacro
+import zio.entity.runtime.akka.Runtime
 
 import java.time.Instant
 
 class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, AccountCommandReject]) extends Account {
   import combinators._
 
-  override def initialize(cost: TransactionCost): IO[AccountCommandReject, Unit] = read flatMap {
-    case IdleAccountState => append(AccountEvent.Initialize(cost))
-    case _                   => reject(AccountCommandReject.AccountAlreadyInitialized)
+  override def initialize(company: SecuritiesCompany): IO[AccountCommandReject, Unit] = read flatMap {
+    case IdleAccountState => append(AccountEvent.Initialize(company))
+    case _                => reject(AccountCommandReject.AccountAlreadyInitialized)
   }
 
   override def balance: IO[AccountCommandReject, MoneyBag] = ensureFullState map (_.balance)
@@ -24,25 +36,25 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
 
   override def netValue: IO[AccountCommandReject, MoneyBag] = ensureFullState map (_.netValue)
 
-  override def deposit(money: Money): IO[AccountCommandReject, Unit] = ensureFullState flatMap { _ =>
-    append(AccountEvent.Deposit(money))
+  override def deposit(money: Money, at: Instant): IO[AccountCommandReject, Unit] = ensureFullState flatMap { _ =>
+    append(AccountEvent.Deposit(money, at))
   }
 
-  override def withdraw(money: Money): IO[AccountCommandReject, Unit] = ensureFullState flatMap { state =>
+  override def withdraw(money: Money, at: Instant): IO[AccountCommandReject, Unit] = ensureFullState flatMap { state =>
     if (state.balance.canAfford(MoneyBag.fromMoneys(money)))
-      append(AccountEvent.Withdrawal(money))
+      append(AccountEvent.Withdrawal(money, at))
     else reject(AccountCommandReject.InsufficientBalance("Withdrawal failed"))
   }
 
   override def buy(
       stock: Stock,
-      averagePrice: Money,
+      unitPrice: Money,
       quantity: Int,
-      contractedAt: Instant
+      at: Instant
   ): IO[AccountCommandReject, Unit] =
     ensureFullState flatMap { state =>
-      if (state.balance.canAfford(MoneyBag.fromMoneys(averagePrice * quantity)))
-        append(AccountEvent.Buy(stock, averagePrice, quantity, contractedAt))
+      if (state.balance.canAfford(MoneyBag.fromMoneys(unitPrice * quantity)))
+        append(AccountEvent.Buy(stock, unitPrice, quantity, at))
       else reject(AccountCommandReject.InsufficientBalance("Buying failed"))
     }
 
@@ -50,18 +62,28 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
       stock: Stock,
       contractPrice: Money,
       quantity: Int,
-      contractedAt: Instant
+      at: Instant
   ): IO[AccountCommandReject, Unit] =
     ensureFullState flatMap { state =>
       if (state.getQuantityByStock(stock) >= quantity)
-        append(AccountEvent.Sell(stock, contractPrice, quantity, contractedAt))
+        append(AccountEvent.Sell(stock, contractPrice, quantity, at))
       else reject(AccountCommandReject.InsufficientShares("Selling failed"))
     }
+
+  override def dividendPaid(stock: Stock, amount: Money, tax: Money, at: Instant): IO[AccountCommandReject, Unit] =
+    ensureFullState flatMap (_ => append(AccountEvent.DividendPaid(stock, amount, tax, at)))
+
+  override def foreignExchangeBuy(
+      exchange: MoneyBag,
+      exchangeRate: BigDecimal,
+      at: Instant
+  ): IO[AccountCommandReject, Unit] =
+    ensureFullState flatMap (_ => append(AccountEvent.ForeignExchangeBuy(exchange, exchangeRate, at)))
 
   private def ensureFullState: IO[AccountCommandReject, ActiveAccountState] =
     read flatMap {
       case state: ActiveAccountState => IO.succeed(state)
-      case IdleAccountState     => reject(AccountCommandReject.AccountNotInitialized)
+      case IdleAccountState          => reject(AccountCommandReject.AccountNotInitialized)
     }
 }
 
@@ -78,4 +100,24 @@ object EventSourcedAccount {
   @SuppressWarnings(Array("org.wartremover.warts.All"))
   implicit val accountProtocol: EntityProtocol[Account, AccountCommandReject] =
     RpcMacro.derive[Account, AccountCommandReject]
+
+  // TODO in-memory말고 postgres로 변경
+  private val stores: ZLayer[Any, Nothing, Has[Stores[AccountName, AccountEvent, AccountState]]] =
+    Clock.live to MemoryStores.make[AccountName, AccountEvent, AccountState](100.millis, 2)
+
+  implicit val accountNameStringEncoder: StringEncoder[AccountName] = s => s.name
+  implicit val accountNameStringDecoder: StringDecoder[AccountName] = n => Some(AccountName(n))
+
+  val accounts: RLayer[ZEnv, Has[Entity[AccountName, Account, AccountState, AccountEvent, AccountCommandReject]]] =
+    (Clock.live and stores and Runtime.actorSettings("Test")) to Runtime
+      .entityLive(
+        "Counter",
+        tagging,
+        EventSourcedBehaviour[Account, AccountState, AccountEvent, AccountCommandReject](
+          new EventSourcedAccount(_),
+          eventHandlerLogic,
+          AccountCommandReject.FromThrowable
+        )
+      )
+      .toLayer
 }

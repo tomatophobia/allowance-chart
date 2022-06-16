@@ -47,12 +47,12 @@ object TransactionRecordEndpoints extends ErrorMapping {
 
         for {
           // TODO 증권사 이름 parsing 도중 에러 처리
-          transactionRecord <- TransactionRecordParser.fromFile(transactionRecordPart.body, securitiesCompany)
+          records <- TransactionRecordParser.fromFile(transactionRecordPart.body, securitiesCompany)
 
           _ <- RegisterTransactionRecordPort.registerTransactionRecord(
             AccountName(name),
             securitiesCompany,
-            transactionRecord
+            records
           )
         } yield ()
       }

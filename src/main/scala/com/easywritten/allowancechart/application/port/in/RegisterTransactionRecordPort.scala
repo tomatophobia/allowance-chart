@@ -9,7 +9,7 @@ trait RegisterTransactionRecordPort {
   def registerTransactionRecord(
       name: AccountName,
       company: SecuritiesCompany,
-      transactionHistories: List[TransactionRecord]
+      transactionRecords: List[TransactionRecord]
   ): IO[ServiceError, Unit]
 }
 
@@ -17,9 +17,9 @@ object RegisterTransactionRecordPort {
   def registerTransactionRecord(
       name: AccountName,
       company: SecuritiesCompany,
-      transactionHistories: List[TransactionRecord]
+      transactionRecords: List[TransactionRecord]
   ): ZIO[Has[RegisterTransactionRecordPort], ServiceError, Unit] =
     ZIO.serviceWith[RegisterTransactionRecordPort](
-      _.registerTransactionRecord(name, company, transactionHistories)
+      _.registerTransactionRecord(name, company, transactionRecords)
     )
 }

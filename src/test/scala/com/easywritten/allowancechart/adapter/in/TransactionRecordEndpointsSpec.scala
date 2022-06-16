@@ -1,6 +1,7 @@
 package com.easywritten.allowancechart.adapter.in
 
 import com.easywritten.allowancechart.application.service.RegisterTransactionRecordService
+import com.easywritten.allowancechart.domain.TestAsset
 import sttp.capabilities.WebSockets
 import sttp.capabilities.zio.ZioStreams
 import sttp.client3._
@@ -13,13 +14,14 @@ import sttp.tapir.server.stub.RichSttpBackendStub
 import zio._
 import zio.test._
 import zio.test.Assertion._
+import zio.test.environment.TestEnvironment
 
 import java.nio.file.Paths
 
 object TransactionRecordEndpointsSpec extends DefaultRunnableSpec {
   import TransactionRecordEndpoints._
 
-  override def spec: ZSpec[Environment, Failure] =
+  override def spec: ZSpec[TestEnvironment, Any] =
     suite("TransactionRecordEndpointsSpec")(
       testM("register page returns status code 200 with html string") {
         val zioBackendStub = SttpBackendStub[RIO[Env, *], WebSockets with ZioStreams](new RIOMonadAsyncError[Env])
@@ -44,12 +46,17 @@ object TransactionRecordEndpointsSpec extends DefaultRunnableSpec {
             .multipartBody(
               List[Part[BasicRequestBody]](
                 Part("name", StringBody("NH투자증권", "utf-8")),
-                Part("transactionRecord", FileBody(SttpFile.fromPath(Paths.get("transaction-files/namuh.csv")), MediaType.TextCsv))
+                Part(
+                  "transactionRecord",
+                  FileBody(SttpFile.fromPath(Paths.get("transaction-files/namuh.csv")), MediaType.TextCsv)
+                )
               )
             )
             .send(backendStub)
         } yield assert(response.code)(equalTo(Ok)) &&
           assert(response.body)(isRight(isNonEmptyString))
       } @@ TestAspect.ignore
-    ).provideCustomLayer(RegisterTransactionRecordService.layer)
+    ).provideCustomLayer(TestAsset.layer to RegisterTransactionRecordService.layer)
+  // TODO provideCustomLayer 부분도 복잡해지면 상당히 머리 아파질 듯
+  // TODO Asset 엔티티에 의존하지 않는 TestRegisterTransactionRecordService.layer를 만들어야 함.
 }

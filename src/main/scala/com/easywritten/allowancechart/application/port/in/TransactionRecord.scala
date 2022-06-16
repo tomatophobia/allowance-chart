@@ -10,6 +10,7 @@ sealed abstract class TransactionRecord(date: LocalDate, transactionClass: Strin
     with Product
     with Serializable
 
+// TODO LocalDate -> Instant로 변경
 object TransactionRecord extends Enum[TransactionRecord] {
 
   final case class Deposit(date: LocalDate, transactionClass: String, amount: Money, briefName: String)

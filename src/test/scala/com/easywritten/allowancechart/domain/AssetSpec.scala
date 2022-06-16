@@ -6,13 +6,14 @@ import zio._
 import zio.clock.Clock
 import zio.test._
 import zio.test.Assertion._
+import zio.test.environment.TestEnvironment
 
 object AssetSpec extends DefaultRunnableSpec {
 
   val apple: Stock = Stock("AAPL", Nation.USA)
   val samsung: Stock = Stock("005930", Nation.KOR)
 
-  override def spec: ZSpec[Environment, Failure] = suite("AssetSpec")(
+  override def spec: ZSpec[TestEnvironment, Any] = suite("AssetSpec")(
     testM("Asset can be changed by adding transaction information") {
       val accountName1 = AccountName("대신증권")
       val accountName2 = AccountName("NH투자증권")
@@ -36,21 +37,21 @@ object AssetSpec extends DefaultRunnableSpec {
         asset <- ZIO.service[Asset]
         acc1 = asset.accounts(accountName1)
         acc2 = asset.accounts(accountName2)
-        _ <- acc1.initialize(TransactionCost.zero)
-        _ <- acc2.initialize(TransactionCost.zero)
+        _ <- acc1.initialize(SecuritiesCompany.Daishin)
+        _ <- acc2.initialize(SecuritiesCompany.Daishin)
 
-        _ <- acc1.deposit(Money.usd(123.45))
+        _ <- acc1.deposit(Money.usd(123.45), now)
         _ <- acc1.buy(apple, Money.usd(32.23), 2, now)
         _ <- acc1.sell(apple, Money.usd(47.79), 1, now)
-        _ <- acc1.withdraw(Money.usd(51.32))
+        _ <- acc1.withdraw(Money.usd(51.32), now)
         balance1 <- acc1.balance
         holdings1 <- acc1.holdings
         netValue1 <- acc1.netValue
 
-        _ <- acc2.deposit(Money.krw(300000))
+        _ <- acc2.deposit(Money.krw(300000), now)
         _ <- acc2.buy(samsung, Money.krw(78240), 3, now)
         _ <- acc2.sell(samsung, Money.krw(65490), 1, now)
-        _ <- acc2.withdraw(Money.krw(34509))
+        _ <- acc2.withdraw(Money.krw(34509), now)
         balance2 <- acc2.balance
         holdings2 <- acc2.holdings
         netValue2 <- acc2.netValue

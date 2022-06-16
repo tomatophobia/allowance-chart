@@ -5,12 +5,13 @@ import zio._
 import zio.stream.ZStream
 import zio.test._
 import zio.test.Assertion._
+import zio.test.environment.TestEnvironment
 
 import java.nio.file.Paths
 
 object TransactionRecordParserSpec extends DefaultRunnableSpec {
   import TransactionRecordParser._
-  override def spec: ZSpec[Environment, Failure] = {
+  override def spec: ZSpec[TestEnvironment, Any] = {
     suite("TransactionRecordParserSpec")(
       suite("parse Daishin")(
         testM("phase 1. String to DaishinEntry") {
@@ -36,16 +37,17 @@ object TransactionRecordParserSpec extends DefaultRunnableSpec {
         testM("whole process") {
           import DaishinParserFixture.wholeProcessTest._
           assertM(parseDaishin(ZStream.fromIterable(DaishinParserFixture.schema :: rawString)))(equalTo(records))
-        },
+        }
       ),
       suite("parse transaction record file")(
         testM("Daishin") {
           for {
             file <- ZIO.effect(Paths.get(getClass.getResource("/transaction-files/creon.csv").toURI).toFile)
             transactionRecords <- fromFile(file, SecuritiesCompany.Daishin)
-          } yield assert(transactionRecords)(equalTo(List()))
+          } yield assertCompletes // assert(transactionRecords)(equalTo(List()))
+          // TODO 너무 결과가 길어서 그냥 로컬에서 에러 발생하지 않고 실행되는지만 확인하고 있음
         }
-      ) @@ TestAspect.ignore // TODO 너무 결과가 길어서 그냥 로컬에서 에러 발생하지 않고 실행되는지만 확인하고 있음
+      )
     )
   }
 

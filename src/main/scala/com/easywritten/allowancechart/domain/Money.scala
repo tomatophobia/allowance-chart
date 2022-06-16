@@ -26,6 +26,16 @@ final case class Money(currency: Currency, amount: MoneyAmount) {
       )
   }
 
+  @SuppressWarnings(Array("org.wartremover.warts.Throw"))
+  def unsafe_-(other: Money): Money = {
+    if (currency === other.currency)
+      Money(currency, amount - other.amount)
+    else
+      throw new IllegalArgumentException(
+        s"${currency.entryName} and ${other.currency.entryName} are not compatible"
+      )
+  }
+
   def *(i: BigDecimal): Money = copy(amount = amount * i)
 
   def /(i: BigDecimal): Money = copy(amount = amount / i)
