@@ -99,7 +99,7 @@ object Dependencies {
   }
 
   // tapir에서 사용하는 로깅
-  object logging {
+  object tapirLogging {
     val logbackClassic = "ch.qos.logback" % "logback-classic" % "1.2.10"
     val logbackCore = "ch.qos.logback" % "logback-core" % "1.2.10"
     val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4"
