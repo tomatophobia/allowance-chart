@@ -14,6 +14,8 @@ final case class Money(currency: Currency, amount: MoneyAmount) {
 
   def halfUp: Money = copy(amount = amount.setScale(currency.scale, RoundingMode.HALF_UP))
 
+  def halfEven: Money = copy(amount = amount.setScale(currency.scale, RoundingMode.HALF_EVEN))
+
   @SuppressWarnings(Array("org.wartremover.warts.Throw"))
   def unsafe_+(other: Money): Money = {
     if (currency === other.currency)
@@ -24,10 +26,19 @@ final case class Money(currency: Currency, amount: MoneyAmount) {
       )
   }
 
-  def *(i: Int): Money = copy(amount = amount * i)
+  @SuppressWarnings(Array("org.wartremover.warts.Throw"))
+  def unsafe_-(other: Money): Money = {
+    if (currency === other.currency)
+      Money(currency, amount - other.amount)
+    else
+      throw new IllegalArgumentException(
+        s"${currency.entryName} and ${other.currency.entryName} are not compatible"
+      )
+  }
 
-  // TODO currency 따라서 scaling
-  def /(i: Int): Money = copy(amount = amount / i)
+  def *(i: BigDecimal): Money = copy(amount = amount * i)
+
+  def /(i: BigDecimal): Money = copy(amount = amount / i)
 
 }
 

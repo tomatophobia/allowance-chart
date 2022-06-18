@@ -1,4 +1,4 @@
-package com.easywritten
+package learning
 
 import zio.clock.Clock
 import zio.duration.durationInt
@@ -14,6 +14,7 @@ import zio.entity.test.TestMemoryStores
 import zio.test.Assertion.equalTo
 import zio.test._
 import zio._
+import zio.test.environment.TestEnvironment
 
 object ZioEntitySpec extends DefaultRunnableSpec {
 
@@ -29,7 +30,7 @@ object ZioEntitySpec extends DefaultRunnableSpec {
     )
 
   @SuppressWarnings(Array("org.wartremover.warts.JavaSerializable", "org.wartremover.warts.Serializable"))
-  override def spec: ZSpec[Environment, Failure] = suite("An entity built with LocalRuntimeWithProto")(
+  override def spec: ZSpec[TestEnvironment, Any] = suite("An entity built with LocalRuntimeWithProto")(
     testM("receives commands, produces events and updates state") {
       (for {
         (counter, probe) <- testEntityWithProbe[String, Counter, Int, CountEvent, String]
