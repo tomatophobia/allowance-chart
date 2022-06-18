@@ -47,30 +47,70 @@ object TransactionRecordParser {
     val depositInterest = "예탁금이용료"
   }
 
+  @SuppressWarnings(Array("org.wartremover.warts.TraversableOps")) // To use `head`
   def parseDaishin(raw: ZStream[Any, Throwable, Seq[String]]): IO[ServiceError, List[TransactionRecord]] = {
-    val entries = (for {
-      head <- raw.take(1)
-      body <- raw.drop(1)
-      entry <- ZStream.fromEffect(daishinParseStringToEntry(head, body))
-    } yield entry)
+    val entries =
+      for {
+        head <- raw.take(1)
+        body <- raw.drop(1)
+        entry <- ZStream.fromEffect(daishinParseStringToEntry(head, body))
+      } yield entry
 
     (
       for {
-        (mergedEntries, _) <- entries.foldM((List[DaishinEntry](), List[DaishinEntry]())) { (pair, entry) =>
-          val (acc, buffer) = pair
-          if (
-            (entry.briefName == DaishinBriefName.buy || entry.briefName == DaishinBriefName.sell) && entry.transactionAmount.isEmpty
-          ) {
-            ZIO.succeed(acc, entry :: buffer)
-          } else {
-            for {
-              merged <- daishinMergePartialBuyOrSell(entry :: buffer)
-            } yield (merged :: acc, List[DaishinEntry]())
-          }
+        (swappedRev, buffer) <- entries.foldM((List[DaishinEntry](), List[DaishinEntry]())) {
+          case ((acc, buffer), entry) =>
+            if (buffer.isEmpty) {
+              if (entry.briefName == DaishinBriefName.sell) {
+                ZIO.succeed(acc, entry :: buffer)
+              } else {
+                ZIO.succeed(entry :: acc, buffer)
+              }
+            } else {
+              if (
+                entry.ticker == buffer.head.ticker && entry.date == buffer.head.date && (entry.briefName == DaishinBriefName.buy || entry.briefName == DaishinBriefName.sell)
+              ) {
+                ZIO.succeed(acc, entry :: buffer)
+              } else {
+                for {
+                  sb <- daishinSwapSellBeforeBuy(buffer)
+                  next =
+                    if (entry.briefName == DaishinBriefName.sell) (sb ++ acc, entry :: Nil)
+                    else (entry :: sb ++ acc, Nil)
+                } yield next
+              }
+            }
         }
+        swapped <-
+          if (buffer.isEmpty) ZIO.succeed(swappedRev.reverse)
+          else
+            for {
+              sb <- daishinSwapSellBeforeBuy(buffer)
+            } yield (sb ++ swappedRev).reverse
 
-        records <- ZIO.foreach(mergedEntries)(daishinParseEntryToRecord)
-      } yield records.reverse
+        (mergedRev, buffer) <- ZIO.foldLeft(swapped)((List[DaishinEntry](), List[DaishinEntry]())) {
+          case ((acc, buffer), entry) =>
+            if (
+              (entry.briefName == DaishinBriefName.buy || entry.briefName == DaishinBriefName.sell) && entry.transactionAmount.isEmpty
+            ) {
+              ZIO.succeed(acc, entry :: buffer)
+            } else {
+              for {
+                merged <- daishinMergePartialBuyOrSell(entry :: buffer).mapError(e =>
+                  new Throwable("병합 중 실패", e)
+                ) // 이렇게 안하면 ZIO#fold가 안됨
+              } yield (merged :: acc, List[DaishinEntry]())
+            }
+        }
+        merged <-
+          if (buffer.isEmpty) ZIO.succeed(mergedRev.reverse)
+          else
+            for {
+              m <- daishinMergePartialBuyOrSell(buffer)
+            } yield (m :: mergedRev).reverse
+
+        records <- ZIO.foreach(merged)(daishinParseEntryToRecord)
+      } yield records
     ).mapError[ServiceError](e => ServiceError.InternalServerError("거래내역 파싱 실패", Some(e)))
   }
 
@@ -213,13 +253,28 @@ object TransactionRecordParser {
     )
   }
 
-  def daishinMergePartialBuyOrSell(entries: List[DaishinEntry]): IO[ServiceError, DaishinEntry] = {
+  /** 모든 매도 주문을 매수 주문 앞쪽으로 넘긴다. 역순이므로 뒤가 아닌 앞으로 넘긴다.
+    * @param reversedEntries 역순으로 되어있는 거래내역
+    */
+  def daishinSwapSellBeforeBuy(reversedEntries: List[DaishinEntry]): IO[ServiceError, List[DaishinEntry]] = {
+    for {
+      head <- ZIO.fromOption(reversedEntries.headOption).orElseFail(ServiceError.InternalServerError("주문 내역이 비어있음"))
+      _ <- ZIO
+        .fail(ServiceError.InternalServerError("스왑할 거래 내역의 티커가 일치하지 않음"))
+        .when(reversedEntries.exists(_.ticker =!= head.ticker))
+      (sell, buy) = reversedEntries.partition(_.briefName == DaishinBriefName.sell)
+    } yield sell ++ buy
+  }
+
+  /** 거래금액이 비어있는 매수 또는 매도 주문을 합친다.
+    */
+  def daishinMergePartialBuyOrSell(entries: List[DaishinEntry]): IO[ServiceError, DaishinEntry] =
     for {
       head <- ZIO.fromOption(entries.headOption).orElseFail(ServiceError.InternalServerError("합칠 주문이 존재하지 않음"))
       briefName = head.briefName
       ticker = head.ticker
       merged <- ZIO.foldLeft(entries.drop(1))(head) { (acc, entry) =>
-        if (acc.briefName === briefName && acc.ticker === ticker) {
+        if (entry.briefName === briefName && entry.ticker === ticker) {
           val q1 = acc.quantity.getOrElse(0)
           val q2 = entry.quantity.getOrElse(0)
           val p1 = acc.unitPrice.getOrElse(BigDecimal(0))
@@ -237,10 +292,9 @@ object TransactionRecordParser {
             )
           )
         } else
-          ZIO.fail(ServiceError.InternalServerError("합칠 주문의 적요명이 일치하지 않음"))
+          ZIO.fail(ServiceError.InternalServerError("합칠 거래 내역의 적요명이 일치하지 않음"))
       }
     } yield merged
-  }
 
   // TODO buy, sell의 경우 merge 과정에서 평단가의 값이 소수점 아래로 길어질 수 있으므로 `halfEven`을 실행한다. 추후에는 모든 Money에 대해 실행해야 할지도?
   def daishinParseEntryToRecord(entry: DaishinEntry): IO[ServiceError, TransactionRecord] =
