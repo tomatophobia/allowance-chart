@@ -23,7 +23,15 @@ object Dependencies {
       val all: Seq[ModuleID] = Seq(cats)
     }
 
-    val all: Seq[ModuleID] = Seq(zio, zioTest, testSbt, testMagnolia, testIntellij) ++ entity.all ++ interop.all
+    object logging {
+      private val version = "0.5.14"
+      val core = "dev.zio" %% "zio-logging" % version
+      val slf4j = "dev.zio" %% "zio-logging-slf4j" % version
+      val all: Seq[ModuleID] = Seq(core, slf4j)
+    }
+
+    val all: Seq[ModuleID] =
+      Seq(zio, zioTest, testSbt, testMagnolia, testIntellij) ++ entity.all ++ interop.all ++ logging.all
   }
 
   object cats {
