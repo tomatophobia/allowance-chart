@@ -394,6 +394,116 @@ object DaishinParserFixture {
     )
   )
 
+  object swapSellBeforeBuyTest {
+    val sellAhead: List[DaishinEntry] = List(
+      DaishinEntry(
+        LocalDate.of(2021, 1, 13),
+        "해외증권장내매매",
+        Some(Currency.USD),
+        Some(247.64),
+        None,
+        Some("PBW"),
+        Some(1),
+        None,
+        "현금매수",
+        None,
+        None,
+        None,
+        Some(124.96),
+        Some(0.2),
+        None
+      ),
+      DaishinEntry(
+        LocalDate.of(2021, 1, 13),
+        "해외증권장내매매",
+        Some(Currency.USD),
+        None,
+        None,
+        Some("PBW"),
+        Some(1),
+        None,
+        "현금매수",
+        None,
+        None,
+        None,
+        Some(122.68),
+        None,
+        None
+      ),
+      DaishinEntry(
+        LocalDate.of(2021, 1, 13),
+        "해외증권장내매매",
+        Some(Currency.USD),
+        Some(122.7),
+        None,
+        Some("PBW"),
+        Some(1),
+        None,
+        "현금매도",
+        None,
+        None,
+        None,
+        Some(122.7),
+        Some(0.1),
+        Some(0.01)
+      )
+    )
+
+    val expectedSwapped: List[DaishinEntry] = List(
+      DaishinEntry(
+        LocalDate.of(2021, 1, 13),
+        "해외증권장내매매",
+        Some(Currency.USD),
+        Some(122.7),
+        None,
+        Some("PBW"),
+        Some(1),
+        None,
+        "현금매도",
+        None,
+        None,
+        None,
+        Some(122.7),
+        Some(0.1),
+        Some(0.01)
+      ),
+      DaishinEntry(
+        LocalDate.of(2021, 1, 13),
+        "해외증권장내매매",
+        Some(Currency.USD),
+        Some(247.64),
+        None,
+        Some("PBW"),
+        Some(1),
+        None,
+        "현금매수",
+        None,
+        None,
+        None,
+        Some(124.96),
+        Some(0.2),
+        None
+      ),
+      DaishinEntry(
+        LocalDate.of(2021, 1, 13),
+        "해외증권장내매매",
+        Some(Currency.USD),
+        None,
+        None,
+        Some("PBW"),
+        Some(1),
+        None,
+        "현금매수",
+        None,
+        None,
+        None,
+        Some(122.68),
+        None,
+        None
+      )
+    )
+  }
+
   object mergeEntryTest {
     val dividedBuy: List[DaishinEntry] = List(
       DaishinEntry(
@@ -811,6 +921,90 @@ object DaishinParserFixture {
         "5"
       ),
       List(
+        "2021.1.13",
+        "해외증권장내매매",
+        "USD",
+        "122.7",
+        "",
+        "",
+        "PBW",
+        "1",
+        "-1",
+        "",
+        "",
+        "",
+        "",
+        "1",
+        "현금매도",
+        "",
+        "",
+        "",
+        "",
+        "Powershares Wilderh Clean En",
+        "122.7",
+        "0.1",
+        "0.01",
+        "",
+        "1,065.16",
+        "10"
+      ),
+      List(
+        "2021.1.13",
+        "해외증권장내매매",
+        "USD",
+        "",
+        "",
+        "",
+        "PBW",
+        "1",
+        "0",
+        "",
+        "",
+        "",
+        "",
+        "2",
+        "현금매수",
+        "",
+        "",
+        "",
+        "",
+        "Powershares Wilderh Clean En",
+        "122.68",
+        "",
+        "",
+        "",
+        "1,065.16",
+        "10"
+      ),
+      List(
+        "2021.1.13",
+        "해외증권장내매매",
+        "USD",
+        "247.64",
+        "",
+        "",
+        "PBW",
+        "1",
+        "1",
+        "",
+        "",
+        "",
+        "",
+        "3",
+        "현금매수",
+        "",
+        "",
+        "",
+        "",
+        "Powershares Wilderh Clean En",
+        "124.96",
+        "0.2",
+        "",
+        "",
+        "817.32",
+        "10"
+      ),
+      List(
         "2021.3.15",
         "해외증권장내매매",
         "USD",
@@ -893,34 +1087,6 @@ object DaishinParserFixture {
         "",
         "0",
         "15"
-      ),
-      List(
-        "2021.5.25",
-        "해외증권장내매매",
-        "USD",
-        "79.07",
-        "",
-        "",
-        "PBW",
-        "1",
-        "0",
-        "",
-        "",
-        "",
-        "",
-        "1",
-        "현금매도",
-        "",
-        "",
-        "",
-        "",
-        "Powershares Wilderh Clean En",
-        "79.07",
-        "0.06",
-        "0.01",
-        "",
-        "2,423.51",
-        "500,015"
       )
     )
 
@@ -957,6 +1123,23 @@ object DaishinParserFixture {
         "배당금",
         Money(Currency.USD, 0.24)
       ),
+      TransactionRecord.Buy(
+        LocalDate.of(2021, 1, 13),
+        "해외증권장내매매",
+        Money.usd(247.64),
+        Holding(Stock("PBW", Nation.USA), Money.usd(123.82), 2),
+        "현금매수",
+        Money.usd(0.2)
+      ),
+      TransactionRecord.Sell(
+        LocalDate.of(2021, 1, 13),
+        "해외증권장내매매",
+        Money.usd(122.7),
+        Holding(Stock("PBW", Nation.USA), Money.usd(122.7), 1),
+        "현금매도",
+        Money.usd(0.1),
+        Money.usd(0.01)
+      ),
       TransactionRecord.Sell(
         LocalDate.of(2021, 3, 15),
         "해외증권장내매매",
@@ -966,16 +1149,7 @@ object DaishinParserFixture {
         Money.usd(0.2),
         Money.usd(0.01)
       ),
-      TransactionRecord.Deposit(LocalDate.of(2021, 4, 11), "입금", Money(Currency.KRW, 5), "예탁금이용료"),
-      TransactionRecord.Sell(
-        LocalDate.of(2021, 5, 25),
-        "해외증권장내매매",
-        Money(Currency.USD, 79.07),
-        Holding(Stock("PBW", Nation.USA), Money(Currency.USD, 79.07), 1),
-        "현금매도",
-        Money(Currency.USD, 0.06),
-        Money(Currency.USD, 0.01)
-      )
+      TransactionRecord.Deposit(LocalDate.of(2021, 4, 11), "입금", Money(Currency.KRW, 5), "예탁금이용료")
     )
 
   }

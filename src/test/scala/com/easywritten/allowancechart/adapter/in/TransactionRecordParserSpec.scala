@@ -20,7 +20,11 @@ object TransactionRecordParserSpec extends DefaultRunnableSpec {
             assertM(entry)(equalTo(expected)).map(_ && acc)
           }
         },
-        testM("phase 2. merge partial buy or sell entry") {
+        testM("phase 2. swap sell before buy") {
+          import DaishinParserFixture.swapSellBeforeBuyTest._
+          assertM(daishinSwapSellBeforeBuy(sellAhead))(equalTo(expectedSwapped))
+        },
+        testM("phase 3. merge partial buy or sell entry") {
           // TODO 실패하는 테스트 케이스도 추가하면 좋긴 할 듯
           import DaishinParserFixture.mergeEntryTest._
           for {
@@ -28,7 +32,7 @@ object TransactionRecordParserSpec extends DefaultRunnableSpec {
             mergedSell <- daishinMergePartialBuyOrSell(dividedSell)
           } yield assert(mergedBuy)(equalTo(expectedBuy)) && assert(mergedSell)(equalTo(expectedSell))
         },
-        testM("phase 3. DaishinEntry to TransactionRecord") {
+        testM("phase 4. DaishinEntry to TransactionRecord") {
           ZIO.foldLeft(DaishinParserFixture.entryToRecord)(assertCompletes) { case (acc, (entry, expected)) =>
             val record = daishinParseEntryToRecord(entry)
             assertM(record)(equalTo(expected)).map(_ && acc)
