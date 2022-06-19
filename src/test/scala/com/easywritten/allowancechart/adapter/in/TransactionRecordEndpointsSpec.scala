@@ -2,6 +2,7 @@ package com.easywritten.allowancechart.adapter.in
 
 import com.easywritten.allowancechart.application.service.RegisterTransactionRecordService
 import com.easywritten.allowancechart.domain.TestAsset
+import com.easywritten.allowancechart.testLogLayer
 import sttp.capabilities.WebSockets
 import sttp.capabilities.zio.ZioStreams
 import sttp.client3._
@@ -56,7 +57,7 @@ object TransactionRecordEndpointsSpec extends DefaultRunnableSpec {
         } yield assert(response.code)(equalTo(Ok)) &&
           assert(response.body)(isRight(isNonEmptyString))
       } @@ TestAspect.ignore
-    ).provideCustomLayer(TestAsset.layer to RegisterTransactionRecordService.layer)
+    ).provideCustomLayer((TestAsset.layer and testLogLayer) to RegisterTransactionRecordService.layer)
   // TODO provideCustomLayer 부분도 복잡해지면 상당히 머리 아파질 듯
   // TODO Asset 엔티티에 의존하지 않는 TestRegisterTransactionRecordService.layer를 만들어야 함.
 }

@@ -14,6 +14,7 @@ import zio.entity.core.Entity
 import zio.entity.test.TestEntityRuntime.TestEntity
 import zio.test.TestFailure
 
+// TODO TestAsset은 Asset을 확장하는 구조여야 하지 않나? ...extends Asset? TestClock을 보고 다시 생각해보기
 final case class TestAsset(accounts: TestEntity[AccountName, Account, AccountState, AccountEvent, AccountCommandReject])
 
 object TestAsset {

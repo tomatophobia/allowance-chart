@@ -4,10 +4,12 @@ import com.easywritten.allowancechart.application.port.in.{RegisterTransactionRe
 import com.easywritten.allowancechart.domain.{Asset, SecuritiesCompany, TransactionCost}
 import com.easywritten.allowancechart.domain.account.{Account, AccountName}
 import zio._
+import zio.logging._
 
 import java.time.{Instant, LocalDate, ZoneId, ZoneOffset, ZonedDateTime}
 
-final case class RegisterTransactionRecordService(asset: Asset) extends RegisterTransactionRecordPort {
+final case class RegisterTransactionRecordService(asset: Asset, logger: Logger[String])
+    extends RegisterTransactionRecordPort {
   override def registerTransactionRecord(
       name: AccountName,
       company: SecuritiesCompany,
@@ -32,6 +34,7 @@ final case class RegisterTransactionRecordService(asset: Asset) extends Register
         }
       } yield ()
     ).mapError(e => ServiceError.InternalServerError("Account 엔티티 거래내역 입력 중 에러 발생", Some(e)))
+      .tapError(e => logger.error(e.message))
   }
 
   // TODO 서울 12시로 바꾸는 것이 아니라 바깥쪽에서 거래내역 파싱할 때부터 Instant로 바뀌어야 함
@@ -40,5 +43,6 @@ final case class RegisterTransactionRecordService(asset: Asset) extends Register
 }
 
 object RegisterTransactionRecordService {
-  val layer: URLayer[Has[Asset], Has[RegisterTransactionRecordPort]] = (RegisterTransactionRecordService(_)).toLayer
+  val layer: URLayer[Has[Asset] with Logging, Has[RegisterTransactionRecordPort]] =
+    (RegisterTransactionRecordService(_, _)).toLayer
 }

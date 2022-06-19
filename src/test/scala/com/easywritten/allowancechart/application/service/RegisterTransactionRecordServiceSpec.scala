@@ -13,7 +13,9 @@ import com.easywritten.allowancechart.domain.{
   TestAsset
 }
 import com.easywritten.allowancechart.domain.account.AccountName
+import com.easywritten.allowancechart.testLogLayer
 import zio._
+import zio.logging.Logger
 import zio.test._
 import zio.test.Assertion._
 import zio.test.environment.TestEnvironment
@@ -81,11 +83,12 @@ object RegisterTransactionRecordServiceSpec extends DefaultRunnableSpec {
 
         for {
           asset <- ZIO.service[Asset]
-          appService = RegisterTransactionRecordService(asset)
+          logger <- ZIO.service[Logger[String]]
+          appService = RegisterTransactionRecordService(asset, logger)
           _ <- appService.registerTransactionRecord(name, company, transactionRecords)
         } yield assertCompletes // 에러 없이 돌아가는 것만 확인하는 테스트
         // TODO stub asset을 만든 다음에 asset 내부의 계좌가 적절한 메소드 호출을 받았는지 확인해야 한다.
         // TODO 더 자세하게 하면 최종 계좌 상태까지 확인할 수 있지만 그건 AccountSpec이 따로 있으니까 굳이...?
       }
-    ).provideCustomLayer(TestAsset.layer)
+    ).provideCustomLayer(TestAsset.layer and testLogLayer)
 }
