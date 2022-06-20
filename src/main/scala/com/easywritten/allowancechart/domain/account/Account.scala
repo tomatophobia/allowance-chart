@@ -8,22 +8,22 @@ import java.time.Instant
 
 trait Account {
   @Id(1)
-  def initialize(company: SecuritiesCompany): IO[AccountCommandReject, Unit]
+  def initialize(company: SecuritiesCompany): IO[AccountError, Unit]
 
   @Id(2)
-  def balance: IO[AccountCommandReject, MoneyBag]
+  def balance: IO[AccountError, MoneyBag]
 
   @Id(3)
-  def holdings: IO[AccountCommandReject, Set[Holding]]
+  def holdings: IO[AccountError, Set[Holding]]
 
   @Id(4)
-  def netValue: IO[AccountCommandReject, MoneyBag]
+  def netValue: IO[AccountError, MoneyBag]
 
   @Id(5)
-  def deposit(money: Money, at: Instant): IO[AccountCommandReject, Unit]
+  def deposit(money: Money, at: Instant): IO[AccountError, Unit]
 
   @Id(6)
-  def withdraw(money: Money, at: Instant): IO[AccountCommandReject, Unit]
+  def withdraw(money: Money, at: Instant): IO[AccountError, Unit]
 
   @Id(7)
   def buy(
@@ -31,7 +31,7 @@ trait Account {
       unitPrice: Money,
       quantity: Int,
       at: Instant
-  ): IO[AccountCommandReject, Unit]
+  ): IO[AccountError, Unit]
 
   @Id(8)
   def sell(
@@ -39,7 +39,7 @@ trait Account {
       contractPrice: Money,
       quantity: Int,
       at: Instant
-  ): IO[AccountCommandReject, Unit]
+  ): IO[AccountError, Unit]
 
   @Id(9)
   def dividendPaid(
@@ -47,13 +47,13 @@ trait Account {
       amount: Money,
       tax: Money,
       at: Instant
-  ): IO[AccountCommandReject, Unit]
+  ): IO[AccountError, Unit]
 
   @Id(10)
   def foreignExchangeBuy(
       exchange: MoneyBag,
       exchangeRate: BigDecimal,
       at: Instant
-  ): IO[AccountCommandReject, Unit]
+  ): IO[AccountError, Unit]
 
 }

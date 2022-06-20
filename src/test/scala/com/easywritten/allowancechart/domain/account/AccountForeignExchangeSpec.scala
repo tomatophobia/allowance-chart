@@ -22,7 +22,7 @@ object AccountForeignExchangeSpec extends DefaultRunnableSpec {
             Account,
             AccountState,
             AccountEvent,
-            AccountCommandReject
+            AccountError
           ]
           account = accountEntity(key)
           _ <- account.initialize(SecuritiesCompany.Daishin)

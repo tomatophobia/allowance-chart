@@ -22,28 +22,29 @@ import zio.entity.runtime.akka.Runtime
 
 import java.time.Instant
 
-class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, AccountCommandReject]) extends Account {
+class AccountCommandHandler(combinators: Combinators[AccountState, AccountEvent, AccountError]) extends Account {
   import combinators._
 
-  override def initialize(company: SecuritiesCompany): IO[AccountCommandReject, Unit] = read flatMap {
-    case IdleAccountState => append(AccountEvent.Initialize(company))
-    case _                => reject(AccountCommandReject.AccountAlreadyInitialized)
+  override def initialize(company: SecuritiesCompany): IO[AccountError, Unit] = read flatMap { _ =>
+    reject(AccountError.AccountAlreadyInitialized)
+//    case IdleAccountState => append(AccountEvent.Initialize(company))
+//    case _                => reject(AccountError.AccountAlreadyInitialized)
   }
 
-  override def balance: IO[AccountCommandReject, MoneyBag] = ensureFullState map (_.balance)
+  override def balance: IO[AccountError, MoneyBag] = ensureFullState map (_.balance)
 
-  override def holdings: IO[AccountCommandReject, Set[Holding]] = ensureFullState map (_.holdings)
+  override def holdings: IO[AccountError, Set[Holding]] = ensureFullState map (_.holdings)
 
-  override def netValue: IO[AccountCommandReject, MoneyBag] = ensureFullState map (_.netValue)
+  override def netValue: IO[AccountError, MoneyBag] = ensureFullState map (_.netValue)
 
-  override def deposit(money: Money, at: Instant): IO[AccountCommandReject, Unit] = ensureFullState flatMap { _ =>
+  override def deposit(money: Money, at: Instant): IO[AccountError, Unit] = ensureFullState flatMap { _ =>
     append(AccountEvent.Deposit(money, at))
   }
 
-  override def withdraw(money: Money, at: Instant): IO[AccountCommandReject, Unit] = ensureFullState flatMap { state =>
+  override def withdraw(money: Money, at: Instant): IO[AccountError, Unit] = ensureFullState flatMap { state =>
     if (state.balance.canAfford(MoneyBag.fromMoneys(money)))
       append(AccountEvent.Withdrawal(money, at))
-    else reject(AccountCommandReject.InsufficientBalance("Withdrawal failed"))
+    else reject(AccountError.InsufficientBalance("Withdrawal failed"))
   }
 
   override def buy(
@@ -51,11 +52,11 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
       unitPrice: Money,
       quantity: Int,
       at: Instant
-  ): IO[AccountCommandReject, Unit] =
+  ): IO[AccountError, Unit] =
     ensureFullState flatMap { state =>
       if (state.balance.canAfford(MoneyBag.fromMoneys(unitPrice * quantity)))
         append(AccountEvent.Buy(stock, unitPrice, quantity, at))
-      else reject(AccountCommandReject.InsufficientBalance("Buying failed"))
+      else reject(AccountError.InsufficientBalance("Buying failed"))
     }
 
   override def sell(
@@ -63,43 +64,43 @@ class EventSourcedAccount(combinators: Combinators[AccountState, AccountEvent, A
       contractPrice: Money,
       quantity: Int,
       at: Instant
-  ): IO[AccountCommandReject, Unit] =
+  ): IO[AccountError, Unit] =
     ensureFullState flatMap { state =>
       if (state.getQuantityByStock(stock) >= quantity)
         append(AccountEvent.Sell(stock, contractPrice, quantity, at))
-      else reject(AccountCommandReject.InsufficientShares("Selling failed"))
+      else reject(AccountError.InsufficientShares("Selling failed"))
     }
 
-  override def dividendPaid(stock: Stock, amount: Money, tax: Money, at: Instant): IO[AccountCommandReject, Unit] =
+  override def dividendPaid(stock: Stock, amount: Money, tax: Money, at: Instant): IO[AccountError, Unit] =
     ensureFullState flatMap (_ => append(AccountEvent.DividendPaid(stock, amount, tax, at)))
 
   override def foreignExchangeBuy(
       exchange: MoneyBag,
       exchangeRate: BigDecimal,
       at: Instant
-  ): IO[AccountCommandReject, Unit] =
+  ): IO[AccountError, Unit] =
     ensureFullState flatMap (_ => append(AccountEvent.ForeignExchangeBuy(exchange, exchangeRate, at)))
 
-  private def ensureFullState: IO[AccountCommandReject, ActiveAccountState] =
+  private def ensureFullState: IO[AccountError, ActiveAccountState] =
     read flatMap {
       case state: ActiveAccountState => IO.succeed(state)
-      case IdleAccountState          => reject(AccountCommandReject.AccountNotInitialized)
+      case IdleAccountState          => reject(AccountError.AccountNotInitialized)
     }
 }
 
-object EventSourcedAccount {
+object AccountCommandHandler {
   val tagging: Const[AccountName] = Tagging.const[AccountName](EventTag("Account"))
 
   val eventHandlerLogic: Fold[AccountState, AccountEvent] = Fold(initial = AccountState.init, reduce = _.handleEvent(_))
 
-  import AccountCommandReject.accountCommandRejectPickler
+  import AccountError.accountErrorPickler
 
   implicit val instantPickler: Pickler[Instant] =
     boopickle.DefaultBasic.longPickler.xmap(Instant.ofEpochMilli)(_.toEpochMilli)
 
   @SuppressWarnings(Array("org.wartremover.warts.All"))
-  implicit val accountProtocol: EntityProtocol[Account, AccountCommandReject] =
-    RpcMacro.derive[Account, AccountCommandReject]
+  implicit val accountProtocol: EntityProtocol[Account, AccountError] =
+    RpcMacro.derive[Account, AccountError]
 
   // TODO in-memory말고 postgres로 변경
   private val stores: ZLayer[Any, Nothing, Has[Stores[AccountName, AccountEvent, AccountState]]] =
@@ -108,15 +109,15 @@ object EventSourcedAccount {
   implicit val accountNameStringEncoder: StringEncoder[AccountName] = s => s.name
   implicit val accountNameStringDecoder: StringDecoder[AccountName] = n => Some(AccountName(n))
 
-  val accounts: RLayer[ZEnv, Has[Entity[AccountName, Account, AccountState, AccountEvent, AccountCommandReject]]] =
-    (Clock.live and stores and Runtime.actorSettings("Test")) to Runtime
+  val accounts: RLayer[ZEnv, Has[Entity[AccountName, Account, AccountState, AccountEvent, AccountError]]] =
+    (Clock.live and stores and Runtime.actorSettings("AccountActorSystem")) to Runtime
       .entityLive(
-        "Counter",
+        "Account",
         tagging,
-        EventSourcedBehaviour[Account, AccountState, AccountEvent, AccountCommandReject](
-          new EventSourcedAccount(_),
+        EventSourcedBehaviour[Account, AccountState, AccountEvent, AccountError](
+          new AccountCommandHandler(_),
           eventHandlerLogic,
-          AccountCommandReject.FromThrowable
+          AccountError.FromThrowable
         )
       )
       .toLayer

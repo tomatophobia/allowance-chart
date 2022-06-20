@@ -4,7 +4,7 @@ import com.easywritten.allowancechart.adapter.in.TransactionRecordEndpoints
 import com.easywritten.allowancechart.application.port.in.RegisterTransactionRecordPort
 import com.easywritten.allowancechart.application.service.RegisterTransactionRecordService
 import com.easywritten.allowancechart.domain.Asset
-import com.easywritten.allowancechart.domain.account.EventSourcedAccount
+import com.easywritten.allowancechart.domain.account.AccountCommandHandler
 import zio._
 import zio.clock.Clock
 import zio.console.Console
@@ -18,7 +18,7 @@ package object easywritten {
     Logging.console(logLevel = LogLevel.Info) to Logging.withRootLoggerName("allowance-chart")
 
   // TODO 컴포넌트 많아지면 type alias들 추가하기
-  val domainLayers: RLayer[ZEnv with Logging, Has[Asset]] = (EventSourcedAccount.accounts to Asset.layer)
+  val domainLayers: RLayer[ZEnv with Logging, Has[Asset]] = (AccountCommandHandler.accounts to Asset.layer)
 
   val applicationServiceLayers: URLayer[Has[Asset] with Logging, Has[RegisterTransactionRecordPort]] =
     RegisterTransactionRecordService.layer

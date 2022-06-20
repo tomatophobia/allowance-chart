@@ -42,7 +42,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
               Account,
               AccountState,
               AccountEvent,
-              AccountCommandReject
+              AccountError
             ]
             account = accountEntity(key)
             _ <- account.initialize(SecuritiesCompany.Daishin)
@@ -72,7 +72,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
               Account,
               AccountState,
               AccountEvent,
-              AccountCommandReject
+              AccountError
             ]
             account = accountEntity(key)
             _ <- account.initialize(SecuritiesCompany.Daishin)
@@ -80,7 +80,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
             _ <- account.deposit(Money.usd(1000), now)
             failure <- account.buy(apple, Money.usd(167.2), 10, now).run
           } yield {
-            assert(failure)(fails(equalTo(AccountCommandReject.InsufficientBalance("Buying failed"))))
+            assert(failure)(fails(equalTo(AccountError.InsufficientBalance("Buying failed"))))
           }
         },
         testM("Sell stock") {
@@ -99,7 +99,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
               Account,
               AccountState,
               AccountEvent,
-              AccountCommandReject
+              AccountError
             ]
             account = accountEntity(key)
             _ <- account.initialize(SecuritiesCompany.Daishin)
@@ -130,7 +130,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
               Account,
               AccountState,
               AccountEvent,
-              AccountCommandReject
+              AccountError
             ]
             account = accountEntity(key)
             _ <- account.initialize(SecuritiesCompany.Daishin)
@@ -139,7 +139,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
             _ <- account.buy(apple, Money.usd(167.2), 5, now)
             failure <- account.sell(apple, Money.usd(167.2), 7, now).run
           } yield {
-            assert(failure)(fails(equalTo(AccountCommandReject.InsufficientShares("Selling failed"))))
+            assert(failure)(fails(equalTo(AccountError.InsufficientShares("Selling failed"))))
           }
         },
         testM("Sell all shares") {
@@ -154,7 +154,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
               Account,
               AccountState,
               AccountEvent,
-              AccountCommandReject
+              AccountError
             ]
             account = accountEntity(key)
             _ <- account.initialize(SecuritiesCompany.Daishin)
@@ -189,7 +189,7 @@ object AccountBuySellStockSpec extends DefaultRunnableSpec {
               Account,
               AccountState,
               AccountEvent,
-              AccountCommandReject
+              AccountError
             ]
 
             account = accountEntity(key)

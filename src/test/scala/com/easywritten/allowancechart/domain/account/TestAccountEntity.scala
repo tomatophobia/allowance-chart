@@ -9,18 +9,18 @@ import zio.entity.test.{TestEntityRuntime, TestMemoryStores}
 import zio.test.TestFailure
 
 object TestAccountEntity {
-  import EventSourcedAccount.accountProtocol
+  import AccountCommandHandler.accountProtocol
 
   val layer: ZLayer[Clock, TestFailure[Throwable], Has[
-    Entity[AccountName, Account, AccountState, AccountEvent, AccountCommandReject]
-  ] with Has[TestEntityRuntime.TestEntity[AccountName, Account, AccountState, AccountEvent, AccountCommandReject]]] =
+    Entity[AccountName, Account, AccountState, AccountEvent, AccountError]
+  ] with Has[TestEntityRuntime.TestEntity[AccountName, Account, AccountState, AccountEvent, AccountError]]] =
     (Clock.any and TestMemoryStores.make[AccountName, AccountEvent, AccountState](50.millis) to
       testEntity(
-        EventSourcedAccount.tagging,
-        EventSourcedBehaviour[Account, AccountState, AccountEvent, AccountCommandReject](
-          new EventSourcedAccount(_),
-          EventSourcedAccount.eventHandlerLogic,
-          AccountCommandReject.FromThrowable
+        AccountCommandHandler.tagging,
+        EventSourcedBehaviour[Account, AccountState, AccountEvent, AccountError](
+          new AccountCommandHandler(_),
+          AccountCommandHandler.eventHandlerLogic,
+          AccountError.FromThrowable
         )
       )).mapError(TestFailure.fail)
 }
