@@ -34,7 +34,7 @@ object AssetSpec extends DefaultRunnableSpec {
 
       for {
         now <- ZIO.accessM[Clock](_.get.currentDateTime.map(_.toInstant))
-        asset <- ZIO.service[Asset]
+        asset <- ZIO.service[AssetLive]
         acc1 = asset.accounts(accountName1)
         acc2 = asset.accounts(accountName2)
         _ <- acc1.initialize(SecuritiesCompany.Daishin)

@@ -1,14 +1,14 @@
 package com.easywritten.allowancechart.application.service
 
 import com.easywritten.allowancechart.application.port.in.{RegisterTransactionRecordPort, TransactionRecord}
-import com.easywritten.allowancechart.domain.{Asset, SecuritiesCompany, TransactionCost}
+import com.easywritten.allowancechart.domain.{AssetLive, SecuritiesCompany, TransactionCost}
 import com.easywritten.allowancechart.domain.account.{Account, AccountName}
 import zio._
 import zio.logging._
 
 import java.time.{Instant, LocalDate, ZoneId, ZoneOffset, ZonedDateTime}
 
-final case class RegisterTransactionRecordService(asset: Asset, logger: Logger[String])
+final case class RegisterTransactionRecordService(asset: AssetLive, logger: Logger[String])
     extends RegisterTransactionRecordPort {
   override def registerTransactionRecord(
       name: AccountName,
@@ -43,6 +43,6 @@ final case class RegisterTransactionRecordService(asset: Asset, logger: Logger[S
 }
 
 object RegisterTransactionRecordService {
-  val layer: URLayer[Has[Asset] with Logging, Has[RegisterTransactionRecordPort]] =
+  val layer: URLayer[Has[AssetLive] with Logging, Has[RegisterTransactionRecordPort]] =
     (RegisterTransactionRecordService(_, _)).toLayer
 }

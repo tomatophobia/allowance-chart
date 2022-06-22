@@ -2,7 +2,7 @@ package com.easywritten.allowancechart.application.service
 
 import com.easywritten.allowancechart.application.port.in.TransactionRecord
 import com.easywritten.allowancechart.domain.{
-  Asset,
+  AssetLive,
   Currency,
   Holding,
   Money,
@@ -82,7 +82,7 @@ object RegisterTransactionRecordServiceSpec extends DefaultRunnableSpec {
         )
 
         for {
-          asset <- ZIO.service[Asset]
+          asset <- ZIO.service[AssetLive]
           logger <- ZIO.service[Logger[String]]
           appService = RegisterTransactionRecordService(asset, logger)
           _ <- appService.registerTransactionRecord(name, company, transactionRecords)
