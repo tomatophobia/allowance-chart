@@ -71,35 +71,29 @@ object Asset {
     override def initialize(name: AccountName, company: SecuritiesCompany): IO[ServiceError, Unit] =
       accounts(name)
         .initialize(company)
-        .mapError(e => ServiceError.InternalServerError(e.getMessage, Some(e)))
-        .tapError(e => logger.locally(accountNameLogAnnotation(Some(name)))(logger.error(e.message)))
+        .flatMapError(logAndMapToInternalServerError(name, _))
 
     override def balance(name: AccountName): IO[ServiceError, MoneyBag] =
       accounts(name).balance
-        .mapError(e => ServiceError.InternalServerError(e.getMessage, Some(e)))
-        .tapError(e => logger.locally(accountNameLogAnnotation(Some(name)))(logger.error(e.message)))
+        .flatMapError(logAndMapToInternalServerError(name, _))
 
     override def holdings(name: AccountName): IO[ServiceError, Set[Holding]] =
       accounts(name).holdings
-        .mapError(e => ServiceError.InternalServerError(e.getMessage, Some(e)))
-        .tapError(e => logger.locally(accountNameLogAnnotation(Some(name)))(logger.error(e.message)))
+        .flatMapError(logAndMapToInternalServerError(name, _))
 
     override def netValue(name: AccountName): IO[ServiceError, MoneyBag] =
       accounts(name).netValue
-        .mapError(e => ServiceError.InternalServerError(e.getMessage, Some(e)))
-        .tapError(e => logger.locally(accountNameLogAnnotation(Some(name)))(logger.error(e.message)))
+        .flatMapError(logAndMapToInternalServerError(name, _))
 
     override def deposit(name: AccountName, money: Money, at: Instant): IO[ServiceError, Unit] =
       accounts(name)
         .deposit(money, at)
-        .mapError(e => ServiceError.InternalServerError(e.getMessage, Some(e)))
-        .tapError(e => logger.locally(accountNameLogAnnotation(Some(name)))(logger.error(e.message)))
+        .flatMapError(logAndMapToInternalServerError(name, _))
 
     override def withdraw(name: AccountName, money: Money, at: Instant): IO[ServiceError, Unit] =
       accounts(name)
         .withdraw(money, at)
-        .mapError(e => ServiceError.InternalServerError(e.getMessage, Some(e)))
-        .tapError(e => logger.locally(accountNameLogAnnotation(Some(name)))(logger.error(e.message)))
+        .flatMapError(logAndMapToInternalServerError(name, _))
 
     override def buy(
         name: AccountName,
@@ -110,8 +104,7 @@ object Asset {
     ): IO[ServiceError, Unit] =
       accounts(name)
         .buy(stock, unitPrice, quantity, at)
-        .mapError(e => ServiceError.InternalServerError(e.getMessage, Some(e)))
-        .tapError(e => logger.locally(accountNameLogAnnotation(Some(name)))(logger.error(e.message)))
+        .flatMapError(logAndMapToInternalServerError(name, _))
 
     override def sell(
         name: AccountName,
@@ -122,8 +115,7 @@ object Asset {
     ): IO[ServiceError, Unit] =
       accounts(name)
         .sell(stock, contractPrice, quantity, at)
-        .mapError(e => ServiceError.InternalServerError(e.getMessage, Some(e)))
-        .tapError(e => logger.locally(accountNameLogAnnotation(Some(name)))(logger.error(e.message)))
+        .flatMapError(logAndMapToInternalServerError(name, _))
 
     override def dividendPaid(
         name: AccountName,
@@ -134,8 +126,7 @@ object Asset {
     ): IO[ServiceError, Unit] =
       accounts(name)
         .dividendPaid(stock, amount, tax, at)
-        .mapError(e => ServiceError.InternalServerError(e.getMessage, Some(e)))
-        .tapError(e => logger.locally(accountNameLogAnnotation(Some(name)))(logger.error(e.message)))
+        .flatMapError(logAndMapToInternalServerError(name, _))
 
     override def foreignExchangeBuy(
         name: AccountName,
@@ -145,8 +136,12 @@ object Asset {
     ): IO[ServiceError, Unit] =
       accounts(name)
         .foreignExchangeBuy(exchange, exchangeRate, at)
-        .mapError(e => ServiceError.InternalServerError(e.getMessage, Some(e)))
-        .tapError(e => logger.locally(accountNameLogAnnotation(Some(name)))(logger.error(e.message)))
+        .flatMapError(logAndMapToInternalServerError(name, _))
+
+    private def logAndMapToInternalServerError(name: AccountName, e: Throwable) =
+      for {
+        _ <- logger.locally(accountNameLogAnnotation(Some(name)))(logger.error(e.getMessage))
+      } yield ServiceError.InternalServerError(e.getMessage, Some(e))
   }
 
   val layer: URLayer[Has[Entity[AccountName, Account, AccountState, AccountEvent, AccountError]] with Logging, Has[
