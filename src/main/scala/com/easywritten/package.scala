@@ -15,7 +15,17 @@ package object easywritten {
   type EndPointEnv = Clock with TransactionRecordEndpoints.Env
 
   val logLayer: URLayer[Console with Clock, Logging] =
-    Logging.console(logLevel = LogLevel.Info) to Logging.withRootLoggerName("allowance-chart")
+    Logging.console(
+      logLevel = LogLevel.Info,
+      format = LogFormat.ColoredLogFormat { (ctx, line) =>
+        ctx.renderContext
+          .collect {
+            case (annotation, value) if annotation != "timestamp" && annotation != "name" && annotation != "level" =>
+              s"[$annotation: $value]"
+          }
+          .mkString(" ") + " " + line
+      }
+    ) to Logging.withRootLoggerName("allowance-chart")
 
   // TODO 컴포넌트 많아지면 type alias들 추가하기
   val domainLayers: RLayer[ZEnv with Logging, Has[Asset.Service]] =

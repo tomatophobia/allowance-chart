@@ -14,6 +14,7 @@ import java.time.Instant
 // TODO Service trait 분리하면서 TestAsset도 다시 만들어보기
 
 // TODO Account의 메소드가 늘어날 때마다 Asset도 똑같이 추가해줘야 한다... 이게 맞음?
+// TODO Asset의 존재 의의는 여러 계좌에 대한 작업 자산 수익률 등을 구하기 위함인데 그 외에 계좌 하나에 대한 일들은 생각해보면 그냥 account를 직접 쓰면 되는 거 아닐까? 굳이 account를 Asset이 둘러싸게 할 필요가 있을까?
 object Asset {
   // 원래 Asset trait, object, AssetLive case class, object 4가지를 분리하여 한 파일에 구현했는데 번거로워서 Asset object 하나 안에 Service, Live로 구성함
   trait Service {
@@ -61,6 +62,8 @@ object Asset {
     ): IO[ServiceError, Unit]
   }
 
+  val accountNameLogAnnotation: LogAnnotation[Option[AccountName]] = LogAnnotation.optional("account-name", _.name)
+
   final case class Live(
       accounts: Entity[AccountName, Account, AccountState, AccountEvent, AccountError],
       logger: Logger[String]
@@ -69,35 +72,34 @@ object Asset {
       accounts(name)
         .initialize(company)
         .mapError(e => ServiceError.InternalServerError(e.getMessage, Some(e)))
-        .tapError(e => logger.error(e.message))
-        // TODO LogContext에 값 추가하는 방법...
+        .tapError(e => logger.locally(accountNameLogAnnotation(Some(name)))(logger.error(e.message)))
 
     override def balance(name: AccountName): IO[ServiceError, MoneyBag] =
       accounts(name).balance
         .mapError(e => ServiceError.InternalServerError(e.getMessage, Some(e)))
-        .tapError(e => logger.error(e.message))
+        .tapError(e => logger.locally(accountNameLogAnnotation(Some(name)))(logger.error(e.message)))
 
     override def holdings(name: AccountName): IO[ServiceError, Set[Holding]] =
       accounts(name).holdings
         .mapError(e => ServiceError.InternalServerError(e.getMessage, Some(e)))
-        .tapError(e => logger.error(e.message))
+        .tapError(e => logger.locally(accountNameLogAnnotation(Some(name)))(logger.error(e.message)))
 
     override def netValue(name: AccountName): IO[ServiceError, MoneyBag] =
       accounts(name).netValue
         .mapError(e => ServiceError.InternalServerError(e.getMessage, Some(e)))
-        .tapError(e => logger.error(e.message))
+        .tapError(e => logger.locally(accountNameLogAnnotation(Some(name)))(logger.error(e.message)))
 
     override def deposit(name: AccountName, money: Money, at: Instant): IO[ServiceError, Unit] =
       accounts(name)
         .deposit(money, at)
         .mapError(e => ServiceError.InternalServerError(e.getMessage, Some(e)))
-        .tapError(e => logger.error(e.message))
+        .tapError(e => logger.locally(accountNameLogAnnotation(Some(name)))(logger.error(e.message)))
 
     override def withdraw(name: AccountName, money: Money, at: Instant): IO[ServiceError, Unit] =
       accounts(name)
         .withdraw(money, at)
         .mapError(e => ServiceError.InternalServerError(e.getMessage, Some(e)))
-        .tapError(e => logger.error(e.message))
+        .tapError(e => logger.locally(accountNameLogAnnotation(Some(name)))(logger.error(e.message)))
 
     override def buy(
         name: AccountName,
@@ -109,7 +111,7 @@ object Asset {
       accounts(name)
         .buy(stock, unitPrice, quantity, at)
         .mapError(e => ServiceError.InternalServerError(e.getMessage, Some(e)))
-        .tapError(e => logger.error(e.message))
+        .tapError(e => logger.locally(accountNameLogAnnotation(Some(name)))(logger.error(e.message)))
 
     override def sell(
         name: AccountName,
@@ -121,7 +123,7 @@ object Asset {
       accounts(name)
         .sell(stock, contractPrice, quantity, at)
         .mapError(e => ServiceError.InternalServerError(e.getMessage, Some(e)))
-        .tapError(e => logger.error(e.message))
+        .tapError(e => logger.locally(accountNameLogAnnotation(Some(name)))(logger.error(e.message)))
 
     override def dividendPaid(
         name: AccountName,
@@ -133,7 +135,7 @@ object Asset {
       accounts(name)
         .dividendPaid(stock, amount, tax, at)
         .mapError(e => ServiceError.InternalServerError(e.getMessage, Some(e)))
-        .tapError(e => logger.error(e.message))
+        .tapError(e => logger.locally(accountNameLogAnnotation(Some(name)))(logger.error(e.message)))
 
     override def foreignExchangeBuy(
         name: AccountName,
@@ -144,7 +146,7 @@ object Asset {
       accounts(name)
         .foreignExchangeBuy(exchange, exchangeRate, at)
         .mapError(e => ServiceError.InternalServerError(e.getMessage, Some(e)))
-        .tapError(e => logger.error(e.message))
+        .tapError(e => logger.locally(accountNameLogAnnotation(Some(name)))(logger.error(e.message)))
   }
 
   val layer: URLayer[Has[Entity[AccountName, Account, AccountState, AccountEvent, AccountError]] with Logging, Has[
