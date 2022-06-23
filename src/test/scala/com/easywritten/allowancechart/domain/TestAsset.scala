@@ -19,9 +19,10 @@ final case class TestAsset(accounts: TestEntity[AccountName, Account, AccountSta
 
 object TestAsset {
 
-  val layer: ZLayer[Clock, TestFailure[Throwable], Has[AssetLive] with Has[TestAsset]] = TestAccountEntity.layer map { l =>
-    val entity = l.get[Entity[AccountName, Account, AccountState, AccountEvent, AccountError]]
-    val testEntity = l.get[TestEntity[AccountName, Account, AccountState, AccountEvent, AccountError]]
-    Has(AssetLive(entity)) ++ Has(TestAsset(testEntity))
-  }
+  // TODO 제대로 다시 만들기
+//  val layer: ZLayer[Clock, TestFailure[Throwable], Has[AssetLive] with Has[TestAsset]] = TestAccountEntity.layer map { l =>
+//    val entity = l.get[Entity[AccountName, Account, AccountState, AccountEvent, AccountError]]
+//    val testEntity = l.get[TestEntity[AccountName, Account, AccountState, AccountEvent, AccountError]]
+//    Has(AssetLive(entity)) ++ Has(TestAsset(testEntity))
+//  }
 }

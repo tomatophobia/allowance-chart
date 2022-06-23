@@ -1,7 +1,8 @@
 package com.easywritten.allowancechart.domain
 
 import com.easywritten.allowancechart.domain.account.Assertion.{compareHoldings, compareMoneyBag}
-import com.easywritten.allowancechart.domain.account.AccountName
+import com.easywritten.allowancechart.domain.account.{AccountName, TestAccountEntity}
+import com.easywritten.allowancechart.testLogLayer
 import zio._
 import zio.clock.Clock
 import zio.test._
@@ -34,27 +35,25 @@ object AssetSpec extends DefaultRunnableSpec {
 
       for {
         now <- ZIO.accessM[Clock](_.get.currentDateTime.map(_.toInstant))
-        asset <- ZIO.service[AssetLive]
-        acc1 = asset.accounts(accountName1)
-        acc2 = asset.accounts(accountName2)
-        _ <- acc1.initialize(SecuritiesCompany.Daishin)
-        _ <- acc2.initialize(SecuritiesCompany.Daishin)
+        asset <- ZIO.service[Asset.Service]
+        _ <- asset.initialize(accountName1, SecuritiesCompany.Daishin)
+        _ <- asset.initialize(accountName2, SecuritiesCompany.Daishin)
 
-        _ <- acc1.deposit(Money.usd(123.45), now)
-        _ <- acc1.buy(apple, Money.usd(32.23), 2, now)
-        _ <- acc1.sell(apple, Money.usd(47.79), 1, now)
-        _ <- acc1.withdraw(Money.usd(51.32), now)
-        balance1 <- acc1.balance
-        holdings1 <- acc1.holdings
-        netValue1 <- acc1.netValue
+        _ <- asset.deposit(accountName1, Money.usd(123.45), now)
+        _ <- asset.buy(accountName1, apple, Money.usd(32.23), 2, now)
+        _ <- asset.sell(accountName1, apple, Money.usd(47.79), 1, now)
+        _ <- asset.withdraw(accountName1, Money.usd(51.32), now)
+        balance1 <- asset.balance(accountName1)
+        holdings1 <- asset.holdings(accountName1)
+        netValue1 <- asset.netValue(accountName1)
 
-        _ <- acc2.deposit(Money.krw(300000), now)
-        _ <- acc2.buy(samsung, Money.krw(78240), 3, now)
-        _ <- acc2.sell(samsung, Money.krw(65490), 1, now)
-        _ <- acc2.withdraw(Money.krw(34509), now)
-        balance2 <- acc2.balance
-        holdings2 <- acc2.holdings
-        netValue2 <- acc2.netValue
+        _ <- asset.deposit(accountName2, Money.krw(300000), now)
+        _ <- asset.buy(accountName2, samsung, Money.krw(78240), 3, now)
+        _ <- asset.sell(accountName2, samsung, Money.krw(65490), 1, now)
+        _ <- asset.withdraw(accountName2, Money.krw(34509), now)
+        balance2 <- asset.balance(accountName2)
+        holdings2 <- asset.holdings(accountName2)
+        netValue2 <- asset.netValue(accountName2)
       } yield compareMoneyBag(balance1, expectedBalance1) &&
         compareHoldings(holdings1, expectedHoldings1) &&
         compareMoneyBag(netValue1, expectedNetValue1) &&
@@ -62,5 +61,5 @@ object AssetSpec extends DefaultRunnableSpec {
         compareHoldings(holdings2, expectedHoldings2) &&
         compareMoneyBag(netValue2, expectedNetValue2)
     }
-  ).provideCustomLayer(TestAsset.layer)
+  ).provideCustomLayer((testLogLayer and TestAccountEntity.layer) to Asset.layer)
 }
