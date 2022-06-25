@@ -19,7 +19,7 @@ import zio.blocking.Blocking
 
 object App extends zio.App {
 
-  private val serverRoutes: HttpRoutes[RIO[AppEnv, *]] =
+  private val serverRoutes: HttpRoutes[RIO[EndPointEnv, *]] =
     ZHttp4sServerInterpreter().from(TransactionRecordEndpoints.all).toRoutes
 
   // API documents
@@ -38,17 +38,17 @@ object App extends zio.App {
       catsBlocker = Blocker.liftExecutionContext(executor.asEC)
 
       serve <- ZIO
-        .runtime[AppEnv]
+        .runtime[EndPointEnv]
         .toManaged_
         .flatMap { implicit runtime =>
           EmberServerBuilder
-            .default[RIO[AppEnv, *]]
+            .default[RIO[EndPointEnv, *]]
             .withHost("localhost")
             .withPort(59595)
             .withHttpApp(
               Router(
-                "/assets/webjars" -> webjarServiceBuilder[RIO[AppEnv, *]](catsBlocker).toRoutes,
-                "/assets" -> resourceServiceBuilder[RIO[AppEnv, *]]("/assets", catsBlocker).toRoutes,
+                "/assets/webjars" -> webjarServiceBuilder[RIO[EndPointEnv, *]](catsBlocker).toRoutes,
+                "/assets" -> resourceServiceBuilder[RIO[EndPointEnv, *]]("/assets", catsBlocker).toRoutes,
                 "/" -> (serverRoutes <+> new SwaggerHttp4s(apiDocs).routes)
               ).orNotFound
             )

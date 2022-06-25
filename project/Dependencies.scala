@@ -23,7 +23,15 @@ object Dependencies {
       val all: Seq[ModuleID] = Seq(cats)
     }
 
-    val all: Seq[ModuleID] = Seq(zio, zioTest, testSbt, testMagnolia, testIntellij) ++ entity.all ++ interop.all
+    object logging {
+      private val version = "0.5.14"
+      val core = "dev.zio" %% "zio-logging" % version
+      val slf4j = "dev.zio" %% "zio-logging-slf4j" % version
+      val all: Seq[ModuleID] = Seq(core, slf4j)
+    }
+
+    val all: Seq[ModuleID] =
+      Seq(zio, zioTest, testSbt, testMagnolia, testIntellij) ++ entity.all ++ interop.all ++ logging.all
   }
 
   object cats {
@@ -91,7 +99,7 @@ object Dependencies {
   }
 
   // tapir에서 사용하는 로깅
-  object logging {
+  object tapirLogging {
     val logbackClassic = "ch.qos.logback" % "logback-classic" % "1.2.10"
     val logbackCore = "ch.qos.logback" % "logback-core" % "1.2.10"
     val scalaLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4"

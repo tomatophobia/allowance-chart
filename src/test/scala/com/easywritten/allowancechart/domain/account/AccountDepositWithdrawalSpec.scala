@@ -26,7 +26,7 @@ object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
             Account,
             AccountState,
             AccountEvent,
-            AccountCommandReject
+            AccountError
           ]
           account = accountEntity(key)
           _ <- account.initialize(SecuritiesCompany.Daishin)
@@ -62,7 +62,7 @@ object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
             Account,
             AccountState,
             AccountEvent,
-            AccountCommandReject
+            AccountError
           ]
           account = accountEntity(key)
           _ <- account.initialize(SecuritiesCompany.Daishin)
@@ -90,7 +90,7 @@ object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
             Account,
             AccountState,
             AccountEvent,
-            AccountCommandReject
+            AccountError
           ]
           account = accountEntity(key)
           _ <- account.initialize(SecuritiesCompany.Daishin)
@@ -98,7 +98,7 @@ object AccountDepositWithdrawalSpec extends DefaultRunnableSpec {
           _ <- account.deposit(Money.usd(100), now)
           failure <- account.withdraw(Money.usd(123.12), now).run
         } yield {
-          assert(failure)(fails(equalTo(AccountCommandReject.InsufficientBalance("Withdrawal failed"))))
+          assert(failure)(fails(equalTo(AccountError.InsufficientBalance("Withdrawal failed"))))
         }
       }
     ).provideCustomLayer(TestAccountEntity.layer)

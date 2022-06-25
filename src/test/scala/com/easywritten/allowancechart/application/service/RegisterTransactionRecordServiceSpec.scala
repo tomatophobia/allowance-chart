@@ -1,19 +1,11 @@
 package com.easywritten.allowancechart.application.service
 
 import com.easywritten.allowancechart.application.port.in.TransactionRecord
-import com.easywritten.allowancechart.domain.{
-  Asset,
-  Currency,
-  Holding,
-  Money,
-  MoneyBag,
-  Nation,
-  SecuritiesCompany,
-  Stock,
-  TestAsset
-}
-import com.easywritten.allowancechart.domain.account.AccountName
+import com.easywritten.allowancechart.domain.{Asset, Currency, Holding, Money, MoneyBag, Nation, SecuritiesCompany, Stock, TestAsset}
+import com.easywritten.allowancechart.domain.account.{AccountName, TestAccountEntity}
+import com.easywritten.allowancechart.testLogLayer
 import zio._
+import zio.logging.{Logger, Logging}
 import zio.test._
 import zio.test.Assertion._
 import zio.test.environment.TestEnvironment
@@ -21,7 +13,7 @@ import zio.test.environment.TestEnvironment
 import java.time.LocalDate
 
 object RegisterTransactionRecordServiceSpec extends DefaultRunnableSpec {
-  override def spec: ZSpec[TestEnvironment, Any] =
+  override def spec: ZSpec[TestEnvironment, Any] = {
     suite("RegisterTransactionRecordServiceSpec")(
       testM("register transaction record data and publish account event") {
         val name = AccountName("account1")
@@ -80,12 +72,15 @@ object RegisterTransactionRecordServiceSpec extends DefaultRunnableSpec {
         )
 
         for {
-          asset <- ZIO.service[Asset]
-          appService = RegisterTransactionRecordService(asset)
+          asset <- ZIO.service[Asset.Service]
+          logger <- ZIO.service[Logger[String]]
+          appService = RegisterTransactionRecordService(asset, logger)
           _ <- appService.registerTransactionRecord(name, company, transactionRecords)
         } yield assertCompletes // 에러 없이 돌아가는 것만 확인하는 테스트
         // TODO stub asset을 만든 다음에 asset 내부의 계좌가 적절한 메소드 호출을 받았는지 확인해야 한다.
         // TODO 더 자세하게 하면 최종 계좌 상태까지 확인할 수 있지만 그건 AccountSpec이 따로 있으니까 굳이...?
       }
-    ).provideCustomLayer(TestAsset.layer)
+    ).provideCustomLayer((testLogLayer and TestAccountEntity.layer) to Asset.layer and testLogLayer)
+    // TODO TestAsset 만들기
+  }
 }
