@@ -25,10 +25,9 @@ import java.time.Instant
 class AccountCommandHandler(combinators: Combinators[AccountState, AccountEvent, AccountError]) extends Account {
   import combinators._
 
-  override def initialize(company: SecuritiesCompany): IO[AccountError, Unit] = read flatMap { _ =>
-    reject(AccountError.AccountAlreadyInitialized)
-//    case IdleAccountState => append(AccountEvent.Initialize(company))
-//    case _                => reject(AccountError.AccountAlreadyInitialized)
+  override def initialize(company: SecuritiesCompany): IO[AccountError, Unit] = read flatMap {
+    case IdleAccountState => append(AccountEvent.Initialize(company))
+    case _                => reject(AccountError.AccountAlreadyInitialized)
   }
 
   override def balance: IO[AccountError, MoneyBag] = ensureFullState map (_.balance)
