@@ -2,7 +2,7 @@ package com.easywritten
 
 import cats.effect.Blocker
 import cats.syntax.all._
-import com.easywritten.allowancechart.adapter.in.TransactionRecordEndpoints
+import com.easywritten.allowancechart.adapter.in.{StockBalanceEndpoints, TransactionRecordEndpoints}
 import com.easywritten.allowancechart.application.service.RegisterTransactionRecordService
 import org.http4s._
 import org.http4s.server.Router
@@ -20,7 +20,7 @@ import zio.blocking.Blocking
 object App extends zio.App {
 
   private val serverRoutes: HttpRoutes[RIO[EndPointEnv, *]] =
-    ZHttp4sServerInterpreter().from(TransactionRecordEndpoints.all).toRoutes
+    ZHttp4sServerInterpreter().from(TransactionRecordEndpoints.all ++ StockBalanceEndpoints.all).toRoutes
 
   // API documents
   val apiDocs: String = {

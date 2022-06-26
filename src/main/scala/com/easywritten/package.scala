@@ -1,6 +1,6 @@
 package com
 
-import com.easywritten.allowancechart.adapter.in.TransactionRecordEndpoints
+import com.easywritten.allowancechart.adapter.in.{StockBalanceEndpoints, TransactionRecordEndpoints}
 import com.easywritten.allowancechart.application.port.in.RegisterTransactionRecordPort
 import com.easywritten.allowancechart.application.service.RegisterTransactionRecordService
 import com.easywritten.allowancechart.domain.Asset
@@ -12,7 +12,7 @@ import zio.logging._
 
 package object easywritten {
   // TODO EndpointEnv가 적절한 이름이 아닌 것 같기도
-  type EndPointEnv = Clock with TransactionRecordEndpoints.Env
+  type EndPointEnv = Clock with TransactionRecordEndpoints.Env with StockBalanceEndpoints.Env
 
   val logLayer: URLayer[Console with Clock, Logging] =
     Logging.console(
