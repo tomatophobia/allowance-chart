@@ -1,4 +1,4 @@
-package com.easywritten
+package com.easywritten.allowancechart
 
 import cats.effect.Blocker
 import cats.syntax.all._

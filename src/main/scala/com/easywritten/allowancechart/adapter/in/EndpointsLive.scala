@@ -1,6 +1,6 @@
 package com.easywritten.allowancechart.adapter.in
 
-import com.easywritten.EndpointEnv
+import com.easywritten.allowancechart.EndpointEnv
 import sttp.tapir.ztapir.ZServerEndpoint
 
 final class EndpointsLive[R <: EndpointEnv]
