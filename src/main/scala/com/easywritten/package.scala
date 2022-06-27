@@ -12,7 +12,8 @@ import zio.logging._
 
 package object easywritten {
   // TODO EndpointEnv가 적절한 이름이 아닌 것 같기도
-  type EndPointEnv = Clock with TransactionRecordEndpoints.Env with StockBalanceEndpoints.Env
+  type ClockWithEndpointEnv = Clock with EndpointEnv
+  type EndpointEnv = TransactionRecordEndpoints.Env with StockBalanceEndpoints.Env
 
   val logLayer: URLayer[Console with Clock, Logging] =
     Logging.console(
