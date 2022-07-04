@@ -7,7 +7,7 @@ import scalatags.Text.all._
 
 trait Base {
   // pageContent 입력 가독성을 높이기 위해서 currying
-  def layout(pageTitle: String, currentMenu: Menu)(pageContent: Frag): TypedTag[String] =
+  def layout(pageTitle: String, currentMenu: Menu, scripts: Seq[String])(pageContent: Frag): TypedTag[String] =
     html(
       head(
         meta(charset := "utf-8"),
@@ -32,6 +32,10 @@ trait Base {
         link(
           rel := "stylesheet",
           href := adminLTE("plugins/toastr/toastr.min.css")
+        ),
+        link(
+          rel := "stylesheet",
+          href := dataTablesCss
         ),
         tags2.style(".fas { line-height: inherit; }")
       ),
@@ -157,7 +161,9 @@ trait Base {
         script(src := adminLTE("dist/js/adminlte.min.js")),
         script(src := adminLTE("plugins/sweetalert2/sweetalert2.min.js")),
         script(src := adminLTE("plugins/toastr/toastr.min.js")),
-        script(src := plotly)
+        script(src := dataTablesJs),
+        script(src := plotly),
+        scripts.map(filename => script(src := jsAssets / filename))
       )
     )
 
@@ -178,6 +184,10 @@ trait Base {
   private val webjars: Uri = Uri.unsafeFromString("/assets/webjars")
   def adminLTE(dir: String): Uri = (webjars / "AdminLTE" / "3.2.0" / ".").resolve(Uri.unsafeFromString(dir))
   val plotly: Uri = webjars / "plotly.js-dist-min" / "2.9.0" / "plotly.min.js"
+  val dataTablesCss: Uri = webjars / "datatables" / "1.11.4" / "css/jquery.dataTables.min.css"
+  val dataTablesJs: Uri = webjars / "datatables" / "1.11.4" / "js/jquery.dataTables.min.js"
+
+  private val jsAssets: Uri = Uri.unsafeFromString("/assets/js")
 
   implicit val http4sUriAttrValue: scalatags.Text.AttrValue[Uri] = new scalatags.Text.GenericAttr[Uri]
 }

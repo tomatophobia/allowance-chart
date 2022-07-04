@@ -6,7 +6,7 @@ import scalatags.Text.all._
 object RegisterTransactionRecordPage extends Base {
   def html: String = frag.toString
 
-  val frag: TypedTag[String] = layout("거래내역 등록", Menu.ManageTransactionRecord)(
+  val frag: TypedTag[String] = layout("거래내역 등록", Menu.ManageTransactionRecord, Nil)(
     div(cls := "row")(
       div(cls := "col-md-6")(
         form(action := "/transaction-record", method := "POST", enctype := "multipart/form-data")(

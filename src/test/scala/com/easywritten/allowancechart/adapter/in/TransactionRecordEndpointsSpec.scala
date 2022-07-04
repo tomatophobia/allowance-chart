@@ -1,7 +1,7 @@
 package com.easywritten.allowancechart.adapter.in
 
 import com.easywritten.allowancechart.application.service.RegisterTransactionRecordService
-import com.easywritten.allowancechart.domain.{Asset, TestAsset}
+import com.easywritten.allowancechart.domain.Asset
 import com.easywritten.allowancechart.domain.account.TestAccountEntity
 import com.easywritten.allowancechart.testLogLayer
 import sttp.capabilities.WebSockets
@@ -23,12 +23,14 @@ import java.nio.file.Paths
 object TransactionRecordEndpointsSpec extends DefaultRunnableSpec {
   import TransactionRecordEndpoints._
 
+  val live: TransactionRecordEndpoints[Env] = new TransactionRecordEndpoints[Env] {}
+
   override def spec: ZSpec[TestEnvironment, Any] =
     suite("TransactionRecordEndpointsSpec")(
       testM("register page returns status code 200 with html string") {
         val zioBackendStub = SttpBackendStub[RIO[Env, *], WebSockets with ZioStreams](new RIOMonadAsyncError[Env])
         // RichSttpBackendStub이 정확히 어떤 기능을 더 추가해주는지는 모름
-        val backendStub = RichSttpBackendStub(zioBackendStub).whenRequestMatchesEndpointThenLogic(getRegisterPage)
+        val backendStub = RichSttpBackendStub(zioBackendStub).whenRequestMatchesEndpointThenLogic(live.getRegisterPage)
         for {
           response <- basicRequest.get(uri"http://test.com/transaction-record/register-page").send(backendStub)
         } yield assert(response.code)(equalTo(Ok)) &&
@@ -40,7 +42,7 @@ object TransactionRecordEndpointsSpec extends DefaultRunnableSpec {
         val zioBackendStub = SttpBackendStub[RIO[Env, *], WebSockets with ZioStreams](new RIOMonadAsyncError[Env])
         // RichSttpBackendStub이 정확히 어떤 기능을 더 추가해주는지는 모름
         val backendStub =
-          RichSttpBackendStub(zioBackendStub).whenRequestMatchesEndpointThenLogic(registerTransactionRecord)
+          RichSttpBackendStub(zioBackendStub).whenRequestMatchesEndpointThenLogic(live.registerTransactionRecord)
 
         for {
           response <- basicRequest
