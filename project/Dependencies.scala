@@ -95,7 +95,8 @@ object Dependencies {
   object webjars {
     val adminLTE = "org.webjars" % "AdminLTE" % "3.2.0"
     val plotly = "org.webjars.npm" % "plotly.js-dist-min" % "2.9.0"
-    val all: Seq[ModuleID] = Seq(adminLTE, plotly)
+    val dataTables = "org.webjars" % "datatables" % "1.11.4"
+    val all: Seq[ModuleID] = Seq(adminLTE, plotly, dataTables)
   }
 
   // tapir에서 사용하는 로깅
